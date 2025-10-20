@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <style>
+    body { padding: 20px; }
+    .section { margin-bottom: 30px; }
+    .building-card {
+      border: 2px solid #007bff;
+      border-radius: 10px;
+      padding: 20px;
+      margin: 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .building-card:hover {
+      background-color: #f8f9fa;
+    }
+    .floor-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    .floor-btn {
+      padding: 8px 15px;
+      border: 1px solid #6c757d;
+      background-color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .floor-btn:hover {
+      background-color: #e9ecef;
+    }
+    .classroom-list {
+      margin-top: 20px;
+      text-align: left;
+    }
+    .classroom-item {
+      padding: 5px 0;
+      border-bottom: 1px solid #dee2e6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Sistema de Asignación de Aulas</h1>
+
+    <div class="section">
+      <h2>Edificios y Aulas</h2>
+      <div class="row">
+        <div class="col-md-4">
+          <div class="building-card" id="buildingD">
+            <h3>Edificio D</h3>
+            <p>24 aulas</p>
+            <div class="floor-buttons" id="floorsD">
+              <button class="floor-btn" data-floor="1">Piso 1</button>
+              <button class="floor-btn" data-floor="2">Piso 2</button>
+              <button class="floor-btn" data-floor="3">Piso 3</button>
+              <button class="floor-btn" data-floor="4">Piso 4</button>
+            </div>
+            <div class="classroom-list" id="classroomsD"></div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="building-card" id="buildingE">
+            <h3>Edificio E</h3>
+            <p>23 aulas</p>
+            <div class="floor-buttons" id="floorsE">
+              <button class="floor-btn" data-floor="1">Piso 1</button>
+              <button class="floor-btn" data-floor="2">Piso 2</button>
+              <button class="floor-btn" data-floor="3">Piso 3</button>
+              <button class="floor-btn" data-floor="4">Piso 4</button>
+            </div>
+            <div class="classroom-list" id="classroomsE"></div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="building-card" id="buildingF">
+            <h3>Edificio F</h3>
+            <p>16 aulas</p>
+            <div class="floor-buttons" id="floorsF">
+              <button class="floor-btn" data-floor="1">Piso 1</button>
+              <button class="floor-btn" data-floor="2">Piso 2</button>
+              <button class="floor-btn" data-floor="3">Piso 3</button>
+              <button class="floor-btn" data-floor="4">Piso 4</button>
+            </div>
+            <div class="classroom-list" id="classroomsF"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Inicializar Sistema</h2>
+      <button id="initBtn" class="btn btn-primary">Inicializar Hojas</button>
+    </div>
+
+    <div class="section">
+      <h2>Administrar Datos</h2>
+      <ul class="nav nav-tabs" id="dataTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="classrooms-tab" data-bs-toggle="tab" data-bs-target="#classrooms" type="button" role="tab">Aulas</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="courses-tab" data-bs-toggle="tab" data-bs-target="#courses" type="button" role="tab">Cursos</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="teachers-tab" data-bs-toggle="tab" data-bs-target="#teachers" type="button" role="tab">Profesores</button>
+        </li>
+      </ul>
+      <div class="tab-content" id="dataTabsContent">
+        <div class="tab-pane fade show active" id="classrooms" role="tabpanel">
+          <h3>Agregar Aula</h3>
+          <form id="classroomForm">
+            <div class="row">
+              <div class="col-md-3"><input type="text" class="form-control" id="building" placeholder="Edificio" required></div>
+              <div class="col-md-3"><input type="number" class="form-control" id="floor" placeholder="Piso" required></div>
+              <div class="col-md-3"><input type="text" class="form-control" id="roomNumber" placeholder="Número de Aula" required></div>
+              <div class="col-md-3"><input type="number" class="form-control" id="capacity" placeholder="Capacidad"></div>
+            </div>
+            <div class="form-check mt-2">
+              <input class="form-check-input" type="checkbox" id="autoAssignable" checked>
+              <label class="form-check-label" for="autoAssignable">
+                Auto-asignable
+              </label>
+            </div>
+            <button type="submit" class="btn btn-success mt-2">Agregar Aula</button>
+          </form>
+          <h3>Lista de Aulas</h3>
+          <table class="table" id="classroomsTable">
+            <thead><tr><th>Edificio</th><th>Piso</th><th>Aula</th><th>Capacidad</th><th>Auto-Asignable</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="tab-pane fade" id="courses" role="tabpanel">
+          <h3>Agregar Curso</h3>
+          <form id="courseForm">
+            <div class="row">
+              <div class="col-md-4"><input type="text" class="form-control" id="courseName" placeholder="Nombre del Curso" required></div>
+              <div class="col-md-4"><input type="text" class="form-control" id="courseCode" placeholder="Código del Curso" required></div>
+              <div class="col-md-4"><select class="form-control" id="courseTeacher" required><option value="">Seleccionar Profesor</option></select></div>
+            </div>
+            <button type="submit" class="btn btn-success mt-2">Agregar Curso</button>
+          </form>
+          <h3>Lista de Cursos</h3>
+          <table class="table" id="coursesTable">
+            <thead><tr><th>Nombre</th><th>Código</th><th>Profesor</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="tab-pane fade" id="teachers" role="tabpanel">
+          <h3>Agregar Profesor</h3>
+          <form id="teacherForm">
+            <div class="row">
+              <div class="col-md-6"><input type="text" class="form-control" id="teacherName" placeholder="Nombre" required></div>
+              <div class="col-md-6"><input type="email" class="form-control" id="teacherEmail" placeholder="Correo Electrónico" required></div>
+            </div>
+            <button type="submit" class="btn btn-success mt-2">Agregar Profesor</button>
+          </form>
+          <h3>Lista de Profesores</h3>
+          <table class="table" id="teachersTable">
+            <thead><tr><th>Nombre</th><th>Correo Electrónico</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Asignaciones</h2>
+      <div class="row">
+        <div class="col-md-6">
+          <h3>Crear Asignación</h3>
+          <form id="assignmentForm">
+            <div class="mb-3">
+              <select class="form-control" id="assignCourse" required><option value="">Seleccionar Curso</option></select>
+            </div>
+            <div class="row mb-3">
+              <div class="col-md-4"><select class="form-control" id="assignBuilding" required><option value="">Edificio</option></select></div>
+              <div class="col-md-4"><select class="form-control" id="assignFloor"><option value="">Piso</option></select></div>
+              <div class="col-md-4"><select class="form-control" id="assignClassroom" required><option value="">Aula</option></select></div>
+            </div>
+            <div class="row mb-3">
+              <div class="col-md-4"><input type="date" class="form-control" id="assignDate" required></div>
+              <div class="col-md-4"><input type="time" class="form-control" id="assignStart" required></div>
+              <div class="col-md-4"><input type="time" class="form-control" id="assignEnd" required></div>
+            </div>
+            <button type="submit" class="btn btn-primary">Crear Asignación</button>
+          </form>
+          <h3>Auto-Asignar Aula</h3>
+          <form id="autoAssignForm">
+            <div class="mb-3">
+              <select class="form-control" id="autoAssignCourse" required><option value="">Seleccionar Curso</option></select>
+            </div>
+            <div class="row mb-3">
+              <div class="col-md-4"><input type="date" class="form-control" id="autoAssignDate" required></div>
+              <div class="col-md-4"><input type="time" class="form-control" id="autoAssignStart" required></div>
+              <div class="col-md-4"><input type="time" class="form-control" id="autoAssignEnd" required></div>
+            </div>
+            <button type="submit" class="btn btn-success">Auto-Asignar Aula</button>
+          </form>
+        </div>
+        <div class="col-md-6">
+          <h3>Ver Asignaciones</h3>
+          <div class="mb-3">
+            <input type="date" class="form-control" id="filterDate">
+            <button id="filterBtn" class="btn btn-secondary mt-2">Filtrar por Fecha</button>
+          </div>
+          <table class="table" id="assignmentsTable">
+            <thead><tr><th>Curso</th><th>Aula</th><th>Fecha</th><th>Hora</th><th>Profesor</th><th>Acciones</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let classrooms = [];
+    let courses = [];
+    let teachers = [];
+    let assignments = [];
+
+    // Building classroom configurations
+    const buildingConfig = {
+      'D': { floors: [6, 6, 6, 6] }, // 24 classrooms total
+      'E': { floors: [6, 6, 6, 5] }, // 23 classrooms total
+      'F': { floors: [4, 4, 4, 4] }  // 16 classrooms total
+    };
+
+    function generateClassrooms() {
+      const generatedClassrooms = [];
+      let id = 1;
+
+      for (const [building, config] of Object.entries(buildingConfig)) {
+        config.floors.forEach((count, floorIndex) => {
+          const floor = floorIndex + 1;
+          for (let i = 1; i <= count; i++) {
+            generatedClassrooms.push({
+              id: id++,
+              building: building,
+              floor: floor,
+              roomNumber: `${building}${floor}${String(i).padStart(2, '0')}`,
+              capacity: 30, // Default capacity
+              autoAssignable: true
+            });
+          }
+        });
+      }
+      return generatedClassrooms;
+    }
+
+    function loadData() {
+      google.script.run.withSuccessHandler((data) => {
+        classrooms = data.classrooms || [];
+        courses = data.courses || [];
+        teachers = data.teachers || [];
+        assignments = data.assignments || [];
+
+        // If no classrooms exist, generate them
+        if (classrooms.length === 0) {
+          const generated = generateClassrooms();
+          // Add generated classrooms to the system
+          generated.forEach(c => {
+            google.script.run.addClassroom(c.building, c.floor, c.roomNumber, c.capacity, c.autoAssignable);
+          });
+          classrooms = generated;
+        }
+
+        populateDropdowns();
+        populateTables();
+        populateBuildingCards();
+      }).getAllData();
+    }
+
+    function populateDropdowns() {
+      // Teachers for courses
+      const teacherSelect = document.getElementById('courseTeacher');
+      teacherSelect.innerHTML = '<option value="">Seleccionar Profesor</option>';
+      teachers.forEach(t => teacherSelect.innerHTML += `<option value="${t[0]}">${t[1]}</option>`);
+
+      // Courses for assignments
+      const courseSelect = document.getElementById('assignCourse');
+      courseSelect.innerHTML = '<option value="">Seleccionar Curso</option>';
+      courses.forEach(c => courseSelect.innerHTML += `<option value="${c[0]}">${c[1]} (${c[2]})</option>`);
+
+      // Courses for auto-assignment
+      const autoAssignCourseSelect = document.getElementById('autoAssignCourse');
+      autoAssignCourseSelect.innerHTML = '<option value="">Seleccionar Curso</option>';
+      courses.forEach(c => autoAssignCourseSelect.innerHTML += `<option value="${c[0]}">${c[1]} (${c[2]})</option>`);
+
+      // Buildings
+      const buildingSelect = document.getElementById('assignBuilding');
+      const buildings = [...new Set(classrooms.map(c => c[1]))];
+      buildingSelect.innerHTML = '<option value="">Edificio</option>';
+      buildings.forEach(b => buildingSelect.innerHTML += `<option value="${b}">${b}</option>`);
+    }
+
+    function populateTables() {
+      // Classrooms
+      const classroomsTable = document.getElementById('classroomsTable').querySelector('tbody');
+      classroomsTable.innerHTML = '';
+      classrooms.forEach(c => {
+        const autoAssignText = (c[5] === true || c[5] === 'TRUE') ? 'Sí' : 'No';
+        classroomsTable.innerHTML += `<tr><td>${c[1]}</td><td>${c[2]}</td><td>${c[3]}</td><td>${c[4]}</td><td>${autoAssignText}</td></tr>`;
+      });
+
+      // Courses
+      const coursesTable = document.getElementById('coursesTable').querySelector('tbody');
+      coursesTable.innerHTML = '';
+      courses.forEach(c => {
+        const teacher = teachers.find(t => t[0] == c[3]);
+        coursesTable.innerHTML += `<tr><td>${c[1]}</td><td>${c[2]}</td><td>${teacher ? teacher[1] : ''}</td></tr>`;
+      });
+
+      // Teachers
+      const teachersTable = document.getElementById('teachersTable').querySelector('tbody');
+      teachersTable.innerHTML = '';
+      teachers.forEach(t => teachersTable.innerHTML += `<tr><td>${t[1]}</td><td>${t[2]}</td></tr>`);
+
+      // Assignments
+      populateAssignmentsTable();
+    }
+
+    function populateBuildingCards() {
+      const buildings = ['D', 'E', 'F'];
+      buildings.forEach(building => {
+        const container = document.getElementById(`classrooms${building}`);
+        container.innerHTML = '';
+
+        // Add event listeners to floor buttons
+        const floorButtons = document.querySelectorAll(`#floors${building} .floor-btn`);
+        floorButtons.forEach(btn => {
+          btn.addEventListener('click', () => {
+            const floor = parseInt(btn.getAttribute('data-floor'));
+            showClassrooms(building, floor, container);
+          });
+        });
+      });
+    }
+
+    function showClassrooms(building, floor, container) {
+      const buildingClassrooms = classrooms.filter(c => c[1] === building && c[2] == floor);
+      container.innerHTML = `<h4>Piso ${floor} - Edificio ${building}</h4>`;
+      if (buildingClassrooms.length === 0) {
+        container.innerHTML += '<p>No hay aulas en este piso.</p>';
+      } else {
+        buildingClassrooms.forEach(c => {
+          container.innerHTML += `<div class="classroom-item">Aula ${c[3]} - Capacidad: ${c[4]}</div>`;
+        });
+      }
+    }
+
+    function populateAssignmentsTable(filterDate = null) {
+      const assignmentsTable = document.getElementById('assignmentsTable').querySelector('tbody');
+      assignmentsTable.innerHTML = '';
+      assignments.filter(a => !filterDate || a[3] == filterDate).forEach(a => {
+        const course = courses.find(c => c[0] == a[1]);
+        const classroom = classrooms.find(c => c[0] == a[2]);
+        const teacher = teachers.find(t => t[0] == a[6]);
+        assignmentsTable.innerHTML += `<tr><td>${course ? course[1] : ''}</td><td>${classroom ? `${classroom[1]} ${classroom[2]}-${classroom[3]}` : ''}</td><td>${a[3]}</td><td>${a[4]}-${a[5]}</td><td>${teacher ? teacher[1] : ''}</td><td><button class="btn btn-danger btn-sm" onclick="deleteAssignment('${a[0]}')">Eliminar</button></td></tr>`;
+      });
+    }
+
+    // Event listeners
+    document.getElementById('initBtn').addEventListener('click', () => {
+      google.script.run.initializeSheets();
+      alert('Hojas inicializadas');
+      loadData();
+    });
+
+    document.getElementById('classroomForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const building = document.getElementById('building').value;
+      const floor = document.getElementById('floor').value;
+      const roomNumber = document.getElementById('roomNumber').value;
+      const capacity = document.getElementById('capacity').value;
+      const autoAssignable = document.getElementById('autoAssignable').checked;
+      google.script.run.withSuccessHandler(() => loadData()).addClassroom(building, floor, roomNumber, capacity, autoAssignable);
+    });
+
+    document.getElementById('courseForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('courseName').value;
+      const code = document.getElementById('courseCode').value;
+      const teacherID = document.getElementById('courseTeacher').value;
+      google.script.run.withSuccessHandler(() => loadData()).addCourse(name, code, teacherID);
+    });
+
+    document.getElementById('teacherForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('teacherName').value;
+      const email = document.getElementById('teacherEmail').value;
+      google.script.run.withSuccessHandler(() => loadData()).addTeacher(name, email);
+    });
+
+    document.getElementById('assignBuilding').addEventListener('change', () => {
+      const building = document.getElementById('assignBuilding').value;
+      const floorSelect = document.getElementById('assignFloor');
+      const floors = [...new Set(classrooms.filter(c => c[1] == building).map(c => c[2]))];
+      floorSelect.innerHTML = '<option value="">Piso</option>';
+      floors.forEach(f => floorSelect.innerHTML += `<option value="${f}">${f}</option>`);
+    });
+
+    document.getElementById('assignFloor').addEventListener('change', () => {
+      const building = document.getElementById('assignBuilding').value;
+      const floor = document.getElementById('assignFloor').value;
+      const classroomSelect = document.getElementById('assignClassroom');
+      const rooms = classrooms.filter(c => c[1] == building && c[2] == floor);
+      classroomSelect.innerHTML = '<option value="">Aula</option>';
+      rooms.forEach(r => classroomSelect.innerHTML += `<option value="${r[0]}">${r[3]}</option>`);
+    });
+
+    document.getElementById('assignmentForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const courseID = document.getElementById('assignCourse').value;
+      const classroomID = document.getElementById('assignClassroom').value;
+      const date = document.getElementById('assignDate').value;
+      const start = document.getElementById('assignStart').value;
+      const end = document.getElementById('assignEnd').value;
+      const course = courses.find(c => c[0] == courseID);
+      const teacherID = course ? course[3] : '';
+      google.script.run.withSuccessHandler((result) => {
+        if (result.success) {
+          loadData();
+        } else {
+          alert(result.message);
+        }
+      }).createAssignment(courseID, classroomID, date, start, end, teacherID);
+    });
+
+    document.getElementById('autoAssignForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const courseID = document.getElementById('autoAssignCourse').value;
+      const date = document.getElementById('autoAssignDate').value;
+      const start = document.getElementById('autoAssignStart').value;
+      const end = document.getElementById('autoAssignsEnd').value;
+      google.script.run.withSuccessHandler((result) => {
+        if (result.success) {
+          alert('¡Aula auto-asignada exitosamente!');
+          loadData();
+        } else {
+          alert(result.message);
+        }
+      }).autoAssignClassroom(courseID, date, start, end);
+    });
+
+    document.getElementById('filterBtn').addEventListener('click', () => {
+      const date = document.getElementById('filterDate').value;
+      populateAssignmentsTable(date);
+    });
+
+    function deleteAssignment(id) {
+      google.script.run.withSuccessHandler(() => loadData()).deleteAssignment(id);
+    }
+
+    // Load data on page load
+    window.onload = loadData;
+  </script>
+</body>
+</html>
