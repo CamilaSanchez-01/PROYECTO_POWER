@@ -1,4 +1,5 @@
-// GOOGLE APPS SCRIP FOR CLASSROOM ASSIGMNMENT SYSTEM
+// Google Apps Script for Classroom Assignment System
+
 function doGet() {
   return HtmlService.createHtmlOutputFromFile('Index')
     .setTitle('Classroom Assignment System')
@@ -37,7 +38,7 @@ function getSheetData(sheetName) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName(sheetName);
   if (!sheet) return [];
-  const data= sheet.getDataRange().getValues();
+  const data = sheet.getDataRange().getValues();
   data.shift(); // Remove header
   return data;
 }
