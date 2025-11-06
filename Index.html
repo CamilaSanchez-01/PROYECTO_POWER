@@ -19,21 +19,11 @@
     .building-card:hover {
       background-color: #f8f9fa;
     }
-    .floor-buttons {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-top: 15px;
+    .accordion-button {
+      background-color: #f8f9fa;
+      border: 1px solid #dee2e6;
     }
-    .floor-btn {
-      padding: 8px 15px;
-      border: 1px solid #6c757d;
-      background-color: white;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-    .floor-btn:hover {
+    .accordion-button:not(.collapsed) {
       background-color: #e9ecef;
     }
     .classroom-list {
@@ -42,7 +32,28 @@
     }
     .classroom-item {
       padding: 5px 0;
-      border-bottom: 1px solid #dee2e6;
+      border-bottom: 1px solid #ff4aab;
+    }
+    .modal-body .classroom-item {
+      margin-bottom: 10px;
+    }
+    .classroom-box {
+      margin: 5px;
+      padding: 10px 15px;
+      border: 2px solid #007bff;
+      background-color: white;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+    .classroom-box:hover {
+      background-color: #f8f9fa;
+    }
+    .classroom-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
     }
   </style>
 </head>
@@ -57,39 +68,168 @@
           <div class="building-card" id="buildingD">
             <h3>Edificio D</h3>
             <p>24 aulas</p>
-            <div class="floor-buttons" id="floorsD">
-              <button class="floor-btn" data-floor="1">Piso 1</button>
-              <button class="floor-btn" data-floor="2">Piso 2</button>
-              <button class="floor-btn" data-floor="3">Piso 3</button>
-              <button class="floor-btn" data-floor="4">Piso 4</button>
+            <div class="accordion" id="accordionD">
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseD1" aria-expanded="false" aria-controls="collapseD1">
+                    Piso 1
+                  </button>
+                </h2>
+                <div id="collapseD1" class="accordion-collapse collapse" data-bs-parent="#accordionD">
+                  <div class="accordion-body classroom-grid" id="classroomsD1">
+                    <!-- Classrooms will be populated here -->
+                  </div>
+                </div>
+              </div>
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseD2" aria-expanded="false" aria-controls="collapseD2">
+                    Piso 2
+                  </button>
+                </h2>
+                <div id="collapseD2" class="accordion-collapse collapse" data-bs-parent="#accordionD">
+                  <div class="accordion-body classroom-grid" id="classroomsD2">
+                    <!-- Classrooms will be populated here -->
+                  </div>
+                </div>
+              </div>
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseD3" aria-expanded="false" aria-controls="collapseD3">
+                    Piso 3
+                  </button>
+                </h2>
+                <div id="collapseD3" class="accordion-collapse collapse" data-bs-parent="#accordionD">
+                  <div class="accordion-body classroom-grid" id="classroomsD3">
+                    <!-- Classrooms will be populated here -->
+                  </div>
+                </div>
+              </div>
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseD4" aria-expanded="false" aria-controls="collapseD4">
+                    Piso 4
+                  </button>
+                </h2>
+                <div id="collapseD4" class="accordion-collapse collapse" data-bs-parent="#accordionD">
+                  <div class="accordion-body classroom-grid" id="classroomsD4">
+                    <!-- Classrooms will be populated here -->
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="classroom-list" id="classroomsD"></div>
           </div>
         </div>
         <div class="col-md-4">
           <div class="building-card" id="buildingE">
             <h3>Edificio E</h3>
             <p>23 aulas</p>
-            <div class="floor-buttons" id="floorsE">
-              <button class="floor-btn" data-floor="1">Piso 1</button>
-              <button class="floor-btn" data-floor="2">Piso 2</button>
-              <button class="floor-btn" data-floor="3">Piso 3</button>
-              <button class="floor-btn" data-floor="4">Piso 4</button>
+            <div class="accordion" id="accordionE">
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseE1" aria-expanded="false" aria-controls="collapseE1">
+                    Piso 1
+                  </button>
+                </h2>
+                <div id="collapseE1" class="accordion-collapse collapse" data-bs-parent="#accordionE">
+                  <div class="accordion-body classroom-grid" id="classroomsE1">
+                    <!-- Classrooms will be populated here -->
+                  </div>
+                </div>
+              </div>
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseE2" aria-expanded="false" aria-controls="collapseE2">
+                    Piso 2
+                  </button>
+                </h2>
+                <div id="collapseE2" class="accordion-collapse collapse" data-bs-parent="#accordionE">
+                  <div class="accordion-body classroom-grid" id="classroomsE2">
+                    <!-- Classrooms will be populated here -->
+                  </div>
+                </div>
+              </div>
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseE3" aria-expanded="false" aria-controls="collapseE3">
+                    Piso 3
+                  </button>
+                </h2>
+                <div id="collapseE3" class="accordion-collapse collapse" data-bs-parent="#accordionE">
+                  <div class="accordion-body classroom-grid" id="classroomsE3">
+                    <!-- Classrooms will be populated here -->
+                  </div>
+                </div>
+              </div>
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseE4" aria-expanded="false" aria-controls="collapseE4">
+                    Piso 4
+                  </button>
+                </h2>
+                <div id="collapseE4" class="accordion-collapse collapse" data-bs-parent="#accordionE">
+                  <div class="accordion-body classroom-grid" id="classroomsE4">
+                    <!-- Classrooms will be populated here -->
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="classroom-list" id="classroomsE"></div>
           </div>
         </div>
         <div class="col-md-4">
           <div class="building-card" id="buildingF">
             <h3>Edificio F</h3>
             <p>16 aulas</p>
-            <div class="floor-buttons" id="floorsF">
-              <button class="floor-btn" data-floor="1">Piso 1</button>
-              <button class="floor-btn" data-floor="2">Piso 2</button>
-              <button class="floor-btn" data-floor="3">Piso 3</button>
-              <button class="floor-btn" data-floor="4">Piso 4</button>
+            <div class="accordion" id="accordionF">
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseF1" aria-expanded="false" aria-controls="collapseF1">
+                    Piso 1
+                  </button>
+                </h2>
+                <div id="collapseF1" class="accordion-collapse collapse" data-bs-parent="#accordionF">
+                  <div class="accordion-body classroom-grid" id="classroomsF1">
+                    <!-- Classrooms will be populated here -->
+                  </div>
+                </div>
+              </div>
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseF2" aria-expanded="false" aria-controls="collapseF2">
+                    Piso 2
+                  </button>
+                </h2>
+                <div id="collapseF2" class="accordion-collapse collapse" data-bs-parent="#accordionF">
+                  <div class="accordion-body classroom-grid" id="classroomsF2">
+                    <!-- Classrooms will be populated here -->
+                  </div>
+                </div>
+              </div>
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseF3" aria-expanded="false" aria-controls="collapseF3">
+                    Piso 3
+                  </button>
+                </h2>
+                <div id="collapseF3" class="accordion-collapse collapse" data-bs-parent="#accordionF">
+                  <div class="accordion-body classroom-grid" id="classroomsF3">
+                    <!-- Classrooms will be populated here -->
+                  </div>
+                </div>
+              </div>
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseF4" aria-expanded="false" aria-controls="collapseF4">
+                    Piso 4
+                  </button>
+                </h2>
+                <div id="collapseF4" class="accordion-collapse collapse" data-bs-parent="#accordionF">
+                  <div class="accordion-body classroom-grid" id="classroomsF4">
+                    <!-- Classrooms will be populated here -->
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="classroom-list" id="classroomsF"></div>
           </div>
         </div>
       </div>
@@ -218,6 +358,7 @@
         </div>
       </div>
     </div>
+
   </div>
 
   <script>
@@ -330,31 +471,17 @@
     function populateBuildingCards() {
       const buildings = ['D', 'E', 'F'];
       buildings.forEach(building => {
-        const container = document.getElementById(`classrooms${building}`);
-        container.innerHTML = '';
-
-        // Add event listeners to floor buttons
-        const floorButtons = document.querySelectorAll(`#floors${building} .floor-btn`);
-        floorButtons.forEach(btn => {
-          btn.addEventListener('click', () => {
-            const floor = parseInt(btn.getAttribute('data-floor'));
-            showClassrooms(building, floor, container);
+        for (let floor = 1; floor <= 4; floor++) {
+          const container = document.getElementById(`classrooms${building}${floor}`);
+          const buildingClassrooms = classrooms.filter(c => c[1] === building && c[2] == floor);
+          container.innerHTML = '';
+          buildingClassrooms.forEach(c => {
+            container.innerHTML += `<div class="classroom-box">${c[3]}</div>`;
           });
-        });
+        }
       });
     }
 
-    function showClassrooms(building, floor, container) {
-      const buildingClassrooms = classrooms.filter(c => c[1] === building && c[2] == floor);
-      container.innerHTML = `<h4>Piso ${floor} - Edificio ${building}</h4>`;
-      if (buildingClassrooms.length === 0) {
-        container.innerHTML += '<p>No hay aulas en este piso.</p>';
-      } else {
-        buildingClassrooms.forEach(c => {
-          container.innerHTML += `<div class="classroom-item">Aula ${c[3]} - Capacidad: ${c[4]}</div>`;
-        });
-      }
-    }
 
     function populateAssignmentsTable(filterDate = null) {
       const assignmentsTable = document.getElementById('assignmentsTable').querySelector('tbody');
