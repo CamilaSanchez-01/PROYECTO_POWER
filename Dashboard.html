@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Asignación de Salones</title>
+    <base target="_top">
+    <?!= include('Estilos.html'); ?>
+</head>
+<body>
+    <div class="container">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
+            <h1 class="text-center text-md-start mb-3 mb-md-0">Sistema de Asignación de Aulas</h1>
+            <div class="d-flex flex-column flex-md-row align-items-center">
+                <span id="userInfo" class="me-md-3 mb-2 mb-md-0"></span>
+                <button id="logoutBtn" class="btn btn-outline-danger">Cerrar Sesión</button>
+            </div>
+        </div>
+
+        <!-- Sección de Edificios y Aulas -->
+        <div class="section">
+            <h2>Edificios y Aulas</h2>
+            <div class="row">
+                <div class="col-lg-4 col-md-6 mb-3">
+                    <div class="building-card" id="buildingD">
+                        <h3>Edificio D</h3>
+                        <p>24 aulas</p>
+                        <div class="accordion" id="accordionD">
+                            <!-- Contenido dinámico generado por JavaScript -->
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-3">
+                    <div class="building-card" id="buildingE">
+                        <h3>Edificio E</h3>
+                        <p>23 aulas</p>
+                        <div class="accordion" id="accordionE">
+                            <!-- Contenido dinámico generado por JavaScript -->
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-3">
+                    <div class="building-card" id="buildingF">
+                        <h3>Edificio F</h3>
+                        <p>16 aulas</p>
+                        <div class="accordion" id="accordionF">
+                            <!-- Contenido dinámico generado por JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Administración de Datos -->
+        <div class="section">
+            <h2>Administrar Datos</h2>
+            <ul class="nav nav-tabs" id="dataTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="classrooms-tab" data-bs-toggle="tab" data-bs-target="#classrooms" type="button" role="tab">Aulas</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="courses-tab" data-bs-toggle="tab" data-bs-target="#courses" type="button" role="tab">Cursos</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="teachers-tab" data-bs-toggle="tab" data-bs-target="#teachers" type="button" role="tab">Profesores</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="groups-tab" data-bs-toggle="tab" data-bs-target="#groups" type="button" role="tab">Grupos</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="subjects-tab" data-bs-toggle="tab" data-bs-target="#subjects" type="button" role="tab">Materias</button>
+                </li>
+            </ul>
+            <div class="tab-content" id="dataTabsContent">
+                <div class="tab-pane fade show active" id="classrooms" role="tabpanel">
+                    <h3>Agregar Aula</h3>
+                    <form id="classroomForm">
+                        <div class="row">
+                            <div class="col-md-3 col-sm-6 mb-2"><input type="text" class="form-control" id="building" placeholder="Edificio" required></div>
+                            <div class="col-md-3 col-sm-6 mb-2"><input type="number" class="form-control" id="floor" placeholder="Piso" required></div>
+                            <div class="col-md-3 col-sm-6 mb-2"><input type="text" class="form-control" id="roomNumber" placeholder="Número de Aula" required></div>
+                            <div class="col-md-3 col-sm-6 mb-2"><input type="number" class="form-control" id="capacity" placeholder="Capacidad" required></div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-4 col-sm-6 mb-2">
+                                <select class="form-control" id="roomType" required>
+                                    <option value="">Tipo de Aula</option>
+                                    <option value="Estándar">Estándar</option>
+                                    <option value="Laboratorio">Laboratorio</option>
+                                    <option value="Accesible">Accesible</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 col-sm-6 mb-2">
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox" id="autoAssignable" checked>
+                                    <label class="form-check-label" for="autoAssignable">
+                                        Auto-asignable
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4 col-sm-6 mb-2">
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox" id="accessible">
+                                    <label class="form-check-label" for="accessible">
+                                        Accesible
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-success mt-2">Agregar Aula</button>
+                    </form>
+                    <h3>Lista de Aulas</h3>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="classroomsTable">
+                            <thead><tr><th>Edificio</th><th>Piso</th><th>Aula</th><th>Capacidad</th><th>Tipo</th><th>Auto-Asignable</th><th>Accesible</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="courses" role="tabpanel">
+                    <h3>Agregar Curso</h3>
+                    <form id="courseForm">
+                        <div class="row">
+                            <div class="col-md-4 col-sm-6 mb-2"><input type="text" class="form-control" id="courseName" placeholder="Nombre del Curso" required></div>
+                            <div class="col-md-4 col-sm-6 mb-2"><input type="text" class="form-control" id="courseCode" placeholder="Código del Curso" required></div>
+                            <div class="col-md-4 col-sm-6 mb-2"><select class="form-control" id="courseTeacher" required><option value="">Seleccionar Profesor</option></select></div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-4 col-sm-6 mb-2"><input type="text" class="form-control" id="courseCareer" placeholder="Carrera" required></div>
+                            <div class="col-md-4 col-sm-6 mb-2"><input type="number" class="form-control" id="courseSemester" placeholder="Semestre" min="1" max="8" required></div>
+                            <div class="col-md-4 col-sm-6 mb-2"><select class="form-control" id="courseSubject" required><option value="">Seleccionar Materia</option></select></div>
+                        </div>
+                        <button type="submit" class="btn btn-success mt-2">Agregar Curso</button>
+                    </form>
+                    <h3>Lista de Cursos</h3>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="coursesTable">
+                            <thead><tr><th>Nombre</th><th>Código</th><th>Profesor</th><th>Carrera</th><th>Semestre</th><th>Materia</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="teachers" role="tabpanel">
+                    <h3>Agregar Profesor</h3>
+                    <form id="teacherForm">
+                        <div class="row">
+                            <div class="col-md-6 col-sm-12 mb-2"><input type="text" class="form-control" id="teacherName" placeholder="Nombre" required></div>
+                            <div class="col-md-6 col-sm-12 mb-2"><input type="email" class="form-control" id="teacherEmail" placeholder="Correo Electrónico" required></div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-6 col-sm-12 mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="teacherDisability">
+                                    <label class="form-check-label" for="teacherDisability">
+                                        Requiere accesibilidad
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-sm-12 mb-2">
+                                <select class="form-control" id="teacherPreferredFloor">
+                                    <option value="">Piso preferido (opcional)</option>
+                                    <option value="1">Primer piso</option>
+                                    <option value="2">Segundo piso</option>
+                                    <option value="3">Tercer piso</option>
+                                    <option value="4">Cuarto piso</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-success mt-2">Agregar Profesor</button>
+                    </form>
+                    <h3>Lista de Profesores</h3>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="teachersTable">
+                            <thead><tr><th>Nombre</th><th>Correo Electrónico</th><th>Discapacidad</th><th>Piso Preferido</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="groups" role="tabpanel">
+                    <h3>Agregar Grupo</h3>
+                    <form id="groupForm">
+                        <div class="row">
+                            <div class="col-md-3 col-sm-6 mb-2"><input type="text" class="form-control" id="groupNumber" placeholder="Número de Grupo (ej: 601)" required></div>
+                            <div class="col-md-3 col-sm-6 mb-2"><input type="text" class="form-control" id="groupCareer" placeholder="Carrera" required></div>
+                            <div class="col-md-3 col-sm-6 mb-2"><input type="number" class="form-control" id="groupSemester" placeholder="Semestre" min="1" max="8" required></div>
+                            <div class="col-md-3 col-sm-6 mb-2"><input type="number" class="form-control" id="groupSize" placeholder="Tamaño del Grupo" min="1" required></div>
+                        </div>
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" id="groupDisability">
+                            <label class="form-check-label" for="groupDisability">
+                                Grupo con discapacidad
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-success mt-2">Agregar Grupo</button>
+                    </form>
+                    <h3>Lista de Grupos</h3>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="groupsTable">
+                            <thead><tr><th>Número</th><th>Carrera</th><th>Semestre</th><th>Tamaño</th><th>Discapacidad</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="subjects" role="tabpanel">
+                    <h3>Agregar Materia</h3>
+                    <form id="subjectForm">
+                        <div class="row">
+                            <div class="col-md-4 col-sm-6 mb-2"><input type="text" class="form-control" id="subjectName" placeholder="Nombre de la Materia" required></div>
+                            <div class="col-md-4 col-sm-6 mb-2"><input type="text" class="form-control" id="subjectCode" placeholder="Código" required></div>
+                            <div class="col-md-4 col-sm-6 mb-2"><input type="number" class="form-control" id="subjectSemester" placeholder="Semestre" min="1" max="8" required></div>
+                        </div>
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" id="subjectRequired">
+                            <label class="form-check-label" for="subjectRequired">
+                                Materia obligatoria
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-success mt-2">Agregar Materia</button>
+                    </form>
+                    <h3>Lista de Materias</h3>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="subjectsTable">
+                            <thead><tr><th>Nombre</th><th>Código</th><th>Semestre</th><th>Obligatoria</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Asignaciones -->
+        <div class="section">
+            <h2>Asignaciones</h2>
+            <div class="row">
+                <div class="col-lg-6 col-md-12 mb-4">
+                    <h3>Crear Asignación</h3>
+                    <form id="assignmentForm">
+                        <div class="mb-3">
+                            <select class="form-control" id="assignCourse" required><option value="">Seleccionar Curso</option></select>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4 col-sm-6 mb-2"><select class="form-control" id="assignBuilding" required><option value="">Edificio</option></select></div>
+                            <div class="col-md-4 col-sm-6 mb-2"><select class="form-control" id="assignFloor"><option value="">Piso</option></select></div>
+                            <div class="col-md-4 col-sm-6 mb-2"><select class="form-control" id="assignClassroom" required><option value="">Aula</option></select></div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4 col-sm-6 mb-2"><input type="date" class="form-control" id="assignDate" required></div>
+                            <div class="col-md-4 col-sm-6 mb-2"><input type="time" class="form-control" id="assignStart" required></div>
+                            <div class="col-md-4 col-sm-6 mb-2"><input type="time" class="form-control" id="assignEnd" required></div>
+                        </div>
+                        <div class="mb-3">
+                            <select class="form-control" id="assignGroup"><option value="">Seleccionar Grupo (opcional)</option></select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Crear Asignación</button>
+                    </form>
+                    <h3>Auto-Asignar Aula</h3>
+                    <form id="autoAssignForm">
+                        <div class="mb-3">
+                            <select class="form-control" id="autoAssignCourse" required><option value="">Seleccionar Curso</option></select>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4 col-sm-6 mb-2"><input type="date" class="form-control" id="autoAssignDate" required></div>
+                            <div class="col-md-4 col-sm-6 mb-2"><input type="time" class="form-control" id="autoAssignStart" required></div>
+                            <div class="col-md-4 col-sm-6 mb-2"><input type="time" class="form-control" id="autoAssignEnd" required></div>
+                        </div>
+                        <button type="submit" class="btn btn-success">Auto-Asignar Aula</button>
+                    </form>
+                </div>
+                <div class="col-lg-6 col-md-12">
+                    <h3>Ver Asignaciones</h3>
+                    <div class="mb-3">
+                        <input type="date" class="form-control" id="filterDate">
+                        <button id="filterBtn" class="btn btn-secondary mt-2">Filtrar por Fecha</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="assignmentsTable">
+                            <thead><tr><th>Curso</th><th>Aula</th><th>Fecha</th><th>Hora</th><th>Profesor</th><th>Grupo</th><th>Acciones</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Font Awesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</body>
+</html>
+
+
+
