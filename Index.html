@@ -48,6 +48,9 @@
             }
             
             function loadLogin() {
+                // Limpiar cualquier sesión residual
+                sessionStorage.removeItem('sessionId');
+                
                 google.script.run
                     .withSuccessHandler(function(html) {
                         appContainer.innerHTML = html;
@@ -125,7 +128,7 @@
                 
                 if (!sessionId) {
                     // Si no hay sesión, redirigir al login
-                    window.location.reload();
+                    loadLogin();
                     return;
                 }
                 
@@ -134,7 +137,7 @@
                     .withSuccessHandler(function(user) {
                         if (!user) {
                             // Si no hay usuario, redirigir al login
-                            window.location.reload();
+                            loadLogin();
                             return;
                         }
                         
@@ -150,7 +153,57 @@
                         // Configurar event listeners
                         configurarEventListeners();
                         
-                        // No se muestra la sección de administración para ningún usuario
+                        // Configurar el botón de cerrar sesión usando event delegation
+                        document.addEventListener('click', function(event) {
+                            if (event.target && event.target.id === 'logoutBtn') {
+                                event.preventDefault();
+                                
+                                if (confirm('¿Está seguro de que desea cerrar su sesión actual?')) {
+                                    mostrarMensaje('Cerrando sesión, espere un momento...', 'info');
+                                    
+                                    const currentSessionId = sessionStorage.getItem('sessionId');
+                                    
+                                    google.script.run
+                                        .withSuccessHandler(function() {
+                                            // Limpiar sessionStorage
+                                            sessionStorage.removeItem('sessionId');
+                                            
+                                            // Mostrar mensaje de despedida
+                                            mostrarMensaje('Sesión cerrada correctamente. Redirigiendo...', 'success');
+                                            
+                                            // Redirigir al login después de un momento
+                                            setTimeout(() => {
+                                                // Limpiar el contenedor y cargar el login
+                                                const appContainer = document.getElementById('appContainer');
+                                                if (appContainer) {
+                                                    appContainer.innerHTML = '<div class="loading-container"><div class="spinner"></div><p>Cargando...</p></div>';
+                                                }
+                                                
+                                                // Cargar el login explícitamente
+                                                loadLogin();
+                                            }, 1500);
+                                        })
+                                        .withFailureHandler(function(error) {
+                                            console.error('Error al cerrar sesión:', error);
+                                            
+                                            // Incluso si hay error, limpiamos la sesión y redirigimos
+                                            sessionStorage.removeItem('sessionId');
+                                            mostrarMensaje('Error al cerrar sesión en el servidor, pero se ha cerrado la sesión local. Redirigiendo...', 'warning');
+                                            
+                                            // Forzar una redirección completa
+                                            setTimeout(() => {
+                                                const appContainer = document.getElementById('appContainer');
+                                                if (appContainer) {
+                                                    appContainer.innerHTML = '<div class="loading-container"><div class="spinner"></div><p>Cargando...</p></div>';
+                                                }
+                                                
+                                                loadLogin();
+                                            }, 1500);
+                                        })
+                                        .logout(currentSessionId);
+                                }
+                            }
+                        });
                     })
                     .getCurrentUser(sessionId);
             }
@@ -176,6 +229,15 @@
             
             // Función para cargar datos iniciales
             function cargarDatos() {
+                // Mostrar indicador de carga
+                const container = document.querySelector('.container');
+                if (container) {
+                    const loadingDiv = document.createElement('div');
+                    loadingDiv.id = 'loadingIndicator';
+                    loadingDiv.innerHTML = '<div class="spinner"></div><p>Cargando datos...</p>';
+                    container.insertBefore(loadingDiv, container.firstChild);
+                }
+                
                 google.script.run
                     .withSuccessHandler(function(data) {
                         aulas = data.aulas || [];
@@ -188,6 +250,12 @@
                         materias = data.materias || [];
                         horarios = data.horarios || [];
                         
+                        // Eliminar indicador de carga
+                        const loadingIndicator = document.getElementById('loadingIndicator');
+                        if (loadingIndicator) {
+                            loadingIndicator.remove();
+                        }
+                        
                         // Si no hay aulas, inicializar el sistema
                         if (aulas.length <= 1) { // Solo encabezado
                             google.script.run
@@ -198,12 +266,24 @@
                                         mostrarMensaje('Error al inicializar el sistema: ' + result.message, 'error');
                                     }
                                 })
+                                .withFailureHandler(function(error) {
+                                    mostrarMensaje('Error al inicializar el sistema: ' + error.message, 'error');
+                                })
                                 .initializeSheets();
                             return;
                         }
                         
                         // Actualizar interfaz
                         actualizarInterfaz();
+                    })
+                    .withFailureHandler(function(error) {
+                        mostrarMensaje('Error al cargar datos: ' + error.message, 'error');
+                        
+                        // Eliminar indicador de carga
+                        const loadingIndicator = document.getElementById('loadingIndicator');
+                        if (loadingIndicator) {
+                            loadingIndicator.remove();
+                        }
                     })
                     .getAllData();
             }
@@ -536,41 +616,6 @@
             
             // Función para configurar los event listeners
             function configurarEventListeners() {
-                // Botón de cerrar sesión - Usar event delegation
-                document.addEventListener('click', function(event) {
-                    if (event.target && event.target.id === 'logoutBtn') {
-                        event.preventDefault();
-                        
-                        // Mostrar mensaje de confirmación más claro
-                        if (confirm('¿Está seguro de que desea cerrar su sesión actual?')) {
-                            // Mostrar mensaje informativo
-                            mostrarMensaje('Cerrando sesión, espere un momento...', 'info');
-                            
-                            // Pequeña pausa para que el usuario vea el mensaje
-                            setTimeout(() => {
-                                google.script.run
-                                    .withSuccessHandler(function() {
-                                        // Limpiar sessionStorage
-                                        sessionStorage.removeItem('sessionId');
-                                        
-                                        // Mostrar mensaje de despedida
-                                        mostrarMensaje('Sesión cerrada correctamente. Redirigiendo...', 'success');
-                                        
-                                        // Redirigir al login después de un momento
-                                        setTimeout(() => {
-                                            window.location.reload();
-                                        }, 1500);
-                                    })
-                                    .withFailureHandler(function(error) {
-                                        console.error('Error al cerrar sesión:', error);
-                                        mostrarMensaje('Error al cerrar sesión. Por favor, intente nuevamente.', 'error');
-                                    })
-                                    .logout(sessionId);
-                            }, 1000);
-                        }
-                    }
-                });
-                
                 // Formulario de agregar aula
                 const classroomForm = document.getElementById('classroomForm');
                 if (classroomForm) {
@@ -883,6 +928,3 @@
     </script>
 </body>
 </html>
-
-
-
