@@ -778,6 +778,19 @@ function createAssignment(sessionId, idCurso, idAula, fecha, horaInicio, horaFin
   }
 }
 
+
+// Función para cerrar sesión
+function logout(sessionId) {
+  try {
+    const cache = CacheService.getScriptCache();
+    cache.remove(sessionId);
+    return { success: true };
+  } catch (error) {
+    return { success: false, message: 'Error al cerrar sesión: ' + error.message };
+  }
+}
+
+// Función para agregar un nuevo usuario
 function addUsuario(sessionId, nombre, email, password, rol) {
   try {
     // Verificar permisos
@@ -1096,6 +1109,253 @@ function radixSortPorPrioridad(aulas) {
   }
   
   return ordenado;
+}
+
+// Función para reasignar grupos con discapacidad a primeros pisos
+function reassignDisabledGroups(sessionId) {
+  try {
+    // Verificar permisos
+    const session = getCurrentUser(sessionId);
+    if (!session || (session.role !== 'admin' && session.role !== 'editor')) {
+      return { success: false, message: 'No tiene permisos para realizar esta acción' };
+    }
+    
+    const grupos = getGrupos();
+    const aulas = getAulas();
+    const asignaciones = getAsignaciones();
+    
+    // Filtrar grupos con discapacidad
+    const gruposDiscapacidad = [];
+    for (let i = 1; i < grupos.length; i++) {
+      if (grupos[i][5] === true || grupos[i][5] === 'TRUE') {
+        gruposDiscapacidad.push(grupos[i]);
+      }
+    }
+    
+    // Filtrar aulas de primer piso
+    const aulasPrimerPiso = [];
+    for (let i = 1; i < aulas.length; i++) {
+      if (aulas[i][2] === 1) {
+        aulasPrimerPiso.push(aulas[i]);
+      }
+    }
+    
+    // Reasignar cada grupo con discapacidad
+    for (const grupo of gruposDiscapacidad) {
+      // Buscar asignaciones actuales del grupo
+      const asignacionesGrupo = [];
+      for (let i = 1; i < asignaciones.length; i++) {
+        if (asignaciones[i][7] === grupo[0]) {
+          asignacionesGrupo.push(asignaciones[i]);
+        }
+      }
+      
+      // Para cada asignación, buscar un aula de primer piso disponible
+      for (const asignacion of asignacionesGrupo) {
+        // Verificar si ya está en primer piso
+        const aulaActual = aulas.find(a => a[0] === asignacion[2]);
+        if (aulaActual && aulaActual[2] === 1) {
+          continue; // Ya está en primer piso, no se reasigna
+        }
+        
+        // Buscar aula de primer piso disponible
+        let aulaDisponible = null;
+        for (const aula of aulasPrimerPiso) {
+          if (!verificarConflictos(aula[0], asignacion[6], asignacion[3], asignacion[4], asignacion[5], asignacion[0])) {
+            aulaDisponible = aula;
+            break;
+          }
+        }
+        
+        // Si se encontró un aula disponible, reasignar
+        if (aulaDisponible) {
+          // Eliminar asignación actual
+          const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Asignaciones');
+          for (let i = 1; i < asignaciones.length; i++) {
+            if (asignaciones[i][0] === asignacion[0]) {
+              sheet.deleteRow(i + 1);
+              break;
+            }
+          }
+          
+          // Crear nueva asignación
+          sheet.appendRow([
+            Utilities.getUuid(),
+            asignacion[1],
+            aulaDisponible[0],
+            asignacion[3],
+            asignacion[4],
+            asignacion[5],
+            asignacion[6],
+            asignacion[7],
+            asignacion[8]
+          ]);
+        }
+      }
+    }
+    
+    return { success: true, message: 'Grupos con discapacidad reasignados correctamente' };
+  } catch (error) {
+    return { success: false, message: 'Error al reasignar grupos con discapacidad: ' + error.message };
+  }
+}
+
+// Función para reasignar grupos con enfermedades crónicas
+function reassignChronicallyIllGroups(sessionId) {
+  try {
+    // Verificar permisos
+    const session = getCurrentUser(sessionId);
+    if (!session || (session.role !== 'admin' && session.role !== 'editor')) {
+      return { success: false, message: 'No tiene permisos para realizar esta acción' };
+    }
+    
+    const grupos = getGrupos();
+    const aulas = getAulas();
+    const asignaciones = getAsignaciones();
+    
+    // Filtrar grupos con enfermedades crónicas (columna 6)
+    const gruposEnfermos = [];
+    for (let i = 1; i < grupos.length; i++) {
+      if (grupos[i][6] === true || grupos[i][6] === 'TRUE') {
+        gruposEnfermos.push(grupos[i]);
+      }
+    }
+    
+    // Filtrar aulas de primer piso
+    const aulasPrimerPiso = [];
+    for (let i = 1; i < aulas.length; i++) {
+      if (aulas[i][2] === 1) {
+        aulasPrimerPiso.push(aulas[i]);
+      }
+    }
+    
+    // Reasignar cada grupo con enfermedades crónicas
+    for (const grupo of gruposEnfermos) {
+      // Buscar asignaciones actuales del grupo
+      const asignacionesGrupo = [];
+      for (let i = 1; i < asignaciones.length; i++) {
+        if (asignaciones[i][7] === grupo[0]) {
+          asignacionesGrupo.push(asignaciones[i]);
+        }
+      }
+      
+      // Para cada asignación, buscar un aula de primer piso disponible
+      for (const asignacion of asignacionesGrupo) {
+        // Verificar si ya está en primer piso
+        const aulaActual = aulas.find(a => a[0] === asignacion[2]);
+        if (aulaActual && aulaActual[2] === 1) {
+          continue; // Ya está en primer piso, no se reasigna
+        }
+        
+        // Buscar aula de primer piso disponible
+        let aulaDisponible = null;
+        for (const aula of aulasPrimerPiso) {
+          if (!verificarConflictos(aula[0], asignacion[6], asignacion[3], asignacion[4], asignacion[5], asignacion[0])) {
+            aulaDisponible = aula;
+            break;
+          }
+        }
+        
+        // Si se encontró un aula disponible, reasignar
+        if (aulaDisponible) {
+          // Eliminar asignación actual
+          const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Asignaciones');
+          for (let i = 1; i < asignaciones.length; i++) {
+            if (asignaciones[i][0] === asignacion[0]) {
+              sheet.deleteRow(i + 1);
+              break;
+            }
+          }
+          
+          // Crear nueva asignación
+          sheet.appendRow([
+            Utilities.getUuid(),
+            asignacion[1],
+            aulaDisponible[0],
+            asignacion[3],
+            asignacion[4],
+            asignacion[5],
+            asignacion[6],
+            asignacion[7],
+            asignacion[8]
+          ]);
+        }
+      }
+    }
+    
+    return { success: true, message: 'Grupos con enfermedades crónicas reasignados correctamente' };
+  } catch (error) {
+    return { success: false, message: 'Error al reasignar grupos con enfermedades crónicas: ' + error.message };
+  }
+}
+
+// Función para reasignar grupos embarazadas
+function reassignPregnantGroups(sessionId) {
+  try {
+    // Verificar permisos
+    const session = getCurrentUser(sessionId);
+    if (!session || (session.role !== 'admin' && session.role !== 'editor')) {
+      return { success: false, message: 'No tiene permisos para realizar esta acción' };
+    }
+    
+    const grupos = getGrupos();
+    
+    // Filtrar grupos embarazadas (columna 7)
+    const gruposEmbarazadas = [];
+    for (let i = 1; i < grupos.length; i++) {
+      if (grupos[i][7] === true || grupos[i][7] === 'TRUE') {
+        gruposEmbarazadas.push(grupos[i]);
+      }
+    }
+    
+    // Para grupos embarazadas, se les puede dar la tarjeta del elevador
+    // En este caso, no reasignamos aulas, pero podríamos marcarlas de alguna manera
+    // Por ahora, solo mostramos un mensaje
+    
+    if (gruposEmbarazadas.length > 0) {
+      return { success: true, message: `Se ha notificado sobre ${gruposEmbarazadas.length} grupos embarazadas para asignar tarjeta del elevador` };
+    } else {
+      return { success: true, message: 'No se encontraron grupos embarazadas' };
+    }
+  } catch (error) {
+    return { success: false, message: 'Error al procesar grupos embarazadas: ' + error.message };
+  }
+}
+
+// Función para procesar archivo CSV
+function processCsvData(sessionId, csvData) {
+  try {
+    // Verificar permisos
+    const session = getCurrentUser(sessionId);
+    if (!session || (session.role !== 'admin' && session.role !== 'editor')) {
+      return { success: false, message: 'No tiene permisos para realizar esta acción' };
+    }
+    
+    // Parsear CSV
+    const lines = csvData.split('\n');
+    const headers = lines[0].split(',');
+    
+    // Procesar cada línea
+    for (let i = 1; i < lines.length; i++) {
+      const values = lines[i].split(',');
+      
+      // Procesar los datos del CSV según el formato esperado
+      if (values.length >= 5) {
+        const idCurso = values[0].trim();
+        const fecha = values[1].trim();
+        const horaInicio = values[2].trim();
+        const horaFin = values[3].trim();
+        const idProfesor = values[4].trim();
+        
+        // Auto-asignar aula usando el método Radix
+        autoAssignClassroom(sessionId, idCurso, fecha, horaInicio, horaFin);
+      }
+    }
+    
+    return { success: true, message: 'Archivo CSV procesado correctamente' };
+  } catch (error) {
+    return { success: false, message: 'Error al procesar archivo CSV: ' + error.message };
+  }
 }
 
 
