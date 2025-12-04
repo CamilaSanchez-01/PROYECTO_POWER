@@ -1,21 +1,17 @@
 <style>
     /* Variables de color y fuente */
     :root {
-        /* Paleta de colores negro y morado oscuro */
-        --negro: #121212;
-        --negro-claro: #1E1E1E;
-        --morado-oscuro: #4A148C;
-        --morado-medio: #7B1FA2;
-        --morado-claro: #9C27B0;
-        --morado-brillante: #D500F9;
-        --gris-claro: #E0E0E0;
-        --gris-texto: #BDBDBD;
+        /* Paleta de colores actualizada */
+        --negro: #000000;           /* Fondo general y texto */
+        --verde-oscuro: #006633;    /* Verde para escudos y detalles */
+        --oro-dorado: #D4AF37;      /* Oro para elementos centrales */
+        --blanco: #FFFFFF;          /* Detalles y contornos */
         
         /* Variables adicionales */
-        --borde-azul: var(--morado-claro);
-        --fondo-claro: var(--negro-claro);
-        --borde-gris: var(--gris-texto);
-        --borde-rosa: var(--morado-brillante);
+        --borde-verde: var(--verde-oscuro);
+        --fondo-claro: var(--negro);
+        --borde-blanco: var(--blanco);
+        --borde-oro: var(--oro-dorado);
     }
 
     /* Estilos generales */
@@ -27,22 +23,22 @@
     }
 
     body {
-        background: linear-gradient(135deg, var(--negro) 0%, var(--morado-oscuro) 100%);
+        background: linear-gradient(135deg, var(--negro) 0%, var(--verde-oscuro) 100%);
         min-height: 100vh;
         display: flex;
         flex-direction: column;
-        color: var(--gris-claro);
+        color: var(--blanco);
         padding: 10px;
     }
 
     .container {
         max-width: 1200px;
         margin: 0 auto;
-        background-color: rgba(30, 30, 30, 0.8);
+        background-color: rgba(0, 0, 0, 0.8);
         border-radius: 15px;
         padding: 20px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        border: 1px solid rgba(156, 39, 176, 0.3);
+        border: 1px solid rgba(var(--oro-dorado), 0.3);
         width: 100%;
     }
 
@@ -55,13 +51,13 @@
     }
 
     .login-container {
-        background-color: rgba(30, 30, 30, 0.8);
+        background-color: rgba(0, 0, 0, 0.8);
         border-radius: 15px;
         padding: 40px;
         width: 100%;
         max-width: 400px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        border: 1px solid rgba(156, 39, 176, 0.3);
+        border: 1px solid rgba(var(--oro-dorado), 0.3);
         position: relative;
         overflow: hidden;
     }
@@ -73,16 +69,16 @@
         left: 0;
         width: 100%;
         height: 5px;
-        background: linear-gradient(90deg, var(--morado-oscuro), var(--morado-brillante));
+        background: linear-gradient(90deg, var(--verde-oscuro), var(--oro-dorado));
     }
 
     .form-title {
         text-align: center;
-        color: var(--gris-claro);
+        color: var(--blanco);
         margin-bottom: 30px;
         font-size: 28px;
         font-weight: 600;
-        text-shadow: 0 0 10px rgba(156, 39, 176, 0.5);
+        text-shadow: 0 0 10px rgba(var(--oro-dorado), 0.5);
     }
 
     .form-group {
@@ -92,37 +88,37 @@
     .form-group label {
         display: block;
         margin-bottom: 8px;
-        color: var(--gris-texto);
+        color: rgba(255, 255, 255, 0.7);
         font-weight: 500;
     }
 
     .form-control {
         width: 100%;
         padding: 12px 15px;
-        border: 2px solid rgba(156, 39, 176, 0.3);
+        border: 2px solid rgba(var(--verde-oscuro), 0.3);
         border-radius: 8px;
         font-size: 16px;
         transition: all 0.3s;
         background-color: rgba(0, 0, 0, 0.3);
-        color: var(--gris-claro);
+        color: var(--blanco);
     }
 
     .form-control::placeholder {
-        color: var(--gris-texto);
+        color: rgba(255, 255, 255, 0.5);
     }
 
     .form-control:focus {
-        border-color: var(--morado-brillante);
+        border-color: var(--oro-dorado);
         outline: none;
         background-color: rgba(0, 0, 0, 0.5);
-        box-shadow: 0 0 0 3px rgba(156, 39, 176, 0.2);
+        box-shadow: 0 0 0 3px rgba(var(--oro-dorado), 0.2);
     }
 
     .login-btn {
         width: 100%;
         padding: 14px;
-        background: linear-gradient(90deg, var(--morado-oscuro), var(--morado-medio));
-        color: white;
+        background: linear-gradient(90deg, var(--verde-oscuro), var(--oro-dorado));
+        color: var(--blanco);
         border: none;
         border-radius: 8px;
         font-size: 16px;
@@ -142,7 +138,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: linear-gradient(90deg, var(--morado-medio), var(--morado-brillante));
+        background: linear-gradient(90deg, var(--oro-dorado), var(--verde-oscuro));
         z-index: -1;
         transition: opacity 0.3s;
         opacity: 0;
@@ -154,7 +150,7 @@
 
     .login-btn:hover {
         transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(156, 39, 176, 0.4);
+        box-shadow: 0 5px 15px rgba(var(--oro-dorado), 0.4);
     }
 
     .error-message {
@@ -169,7 +165,7 @@
     }
 
     .building-card {
-        border: 2px solid var(--borde-azul);
+        border: 2px solid var(--borde-verde);
         border-radius: 10px;
         padding: 20px;
         margin: 10px;
@@ -185,13 +181,13 @@
 
     .accordion-button {
         background-color: var(--fondo-claro);
-        border: 1px solid var(--borde-gris);
-        color: var(--gris-claro);
+        border: 1px solid var(--borde-blanco);
+        color: var(--blanco);
     }
 
     .accordion-button:not(.collapsed) {
         background-color: var(--negro);
-        color: var(--gris-claro);
+        color: var(--blanco);
     }
 
     .classroom-list {
@@ -201,7 +197,7 @@
 
     .classroom-item {
         padding: 5px 0;
-        border-bottom: 1px solid var(--borde-rosa);
+        border-bottom: 1px solid var(--borde-oro);
     }
 
     .modal-body .classroom-item {
@@ -211,13 +207,13 @@
     .classroom-box {
         margin: 5px;
         padding: 10px 15px;
-        border: 2px solid var(--borde-azul);
+        border: 2px solid var(--borde-verde);
         background-color: var(--fondo-claro);
         border-radius: 8px;
         text-align: center;
         font-weight: bold;
         transition: background-color 0.3s;
-        color: var(--gris-claro);
+        color: var(--blanco);
     }
 
     .classroom-box:hover {
@@ -232,41 +228,41 @@
 
     /* Adaptación de estilos de Bootstrap al tema oscuro */
     .table {
-        color: var(--gris-claro);
+        color: var(--blanco);
         width: 100%;
         margin-bottom: 1rem;
     }
 
     .table thead th {
-        border-color: var(--morado-claro);
-        color: var(--gris-claro);
+        border-color: var(--oro-dorado);
+        color: var(--blanco);
         background-color: rgba(0, 0, 0, 0.2);
     }
 
     .table td, .table th {
-        border-color: var(--gris-texto);
+        border-color: var(--blanco);
         padding: 0.75rem;
         vertical-align: top;
     }
 
     .btn-primary {
-        background-color: var(--morado-oscuro);
-        border-color: var(--morado-claro);
+        background-color: var(--verde-oscuro);
+        border-color: var(--oro-dorado);
     }
 
     .btn-primary:hover {
-        background-color: var(--morado-medio);
-        border-color: var(--morado-brillante);
+        background-color: var(--oro-dorado);
+        border-color: var(--oro-dorado);
     }
 
     .btn-success {
-        background-color: var(--morado-medio);
-        border-color: var(--morado-claro);
+        background-color: var(--oro-dorado);
+        border-color: var(--oro-dorado);
     }
 
     .btn-success:hover {
-        background-color: var(--morado-brillante);
-        border-color: var(--morado-claro);
+        background-color: var(--verde-oscuro);
+        border-color: var(--oro-dorado);
     }
 
     .btn-danger {
@@ -285,31 +281,31 @@
     }
 
     .form-control {
-        background-color: var(--negro-claro);
-        border-color: var(--gris-texto);
-        color: var(--gris-claro);
+        background-color: var(--negro);
+        border-color: var(--blanco);
+        color: var(--blanco);
     }
 
     .form-control:focus {
         background-color: var(--negro);
-        border-color: var(--morado-brillante);
-        color: var(--gris-claro);
-        box-shadow: 0 0 0 0.25rem rgba(156, 39, 176, 0.25);
+        border-color: var(--oro-dorado);
+        color: var(--blanco);
+        box-shadow: 0 0 0 0.25rem rgba(var(--oro-dorado), 0.25);
     }
 
     .nav-tabs .nav-link {
-        color: var(--gris-texto);
+        color: rgba(255, 255, 255, 0.7);
     }
 
     .nav-tabs .nav-link.active {
-        color: var(--gris-claro);
-        background-color: var(--negro-claro);
-        border-color: var(--morado-claro) var(--morado-claro) var(--negro-claro);
+        color: var(--blanco);
+        background-color: var(--negro);
+        border-color: var(--oro-dorado) var(--oro-dorado) var(--negro);
     }
 
     .nav-tabs .nav-link:hover {
-        border-color: var(--gris-texto) var(--gris-texto) transparent;
-        color: var(--gris-claro);
+        border-color: var(--blanco) var(--blanco) transparent;
+        color: var(--blanco);
     }
 
     /* Estilos para el spinner de carga */
@@ -325,7 +321,7 @@
     .spinner {
         border: 4px solid rgba(255, 255, 255, 0.3);
         border-radius: 50%;
-        border-top: 4px solid var(--morado-brillante);
+        border-top: 4px solid var(--oro-dorado);
         width: 40px;
         height: 40px;
         animation: spin 1s linear infinite;
@@ -478,10 +474,6 @@
             font-size: 12px;
         }
         
-        .section {
-            margin-bottom: 20px;
-        }
-        
         .table {
             font-size: 12px;
         }
@@ -496,18 +488,22 @@
             font-size: 12px;
         }
         
-        .d-flex {
-            flex-direction: column;
+        .section h2 {
+            font-size: 18px;
         }
         
-        .d-flex .me-3 {
-            margin-right: 0 !important;
-            margin-bottom: 10px;
+        .section h3 {
+            font-size: 16px;
         }
         
-        .table-responsive {
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
+        .row {
+            margin-right: -5px;
+            margin-left: -5px;
+        }
+        
+        .row > [class*="col-"] {
+            padding-right: 5px;
+            padding-left: 5px;
         }
     }
 
@@ -576,6 +572,3 @@
         }
     }
 </style>
-
-
-
