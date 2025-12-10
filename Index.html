@@ -3,160 +3,1184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Asignación de Salones</title>
-    <base target="_top">
-    <?!= include('Estilos.html'); ?>
+    <title>Sistema de Gestión de Edificios Escolares - UABC</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Estilos principales -->
+    <style>
+      <?!= getStyles() ?>
+    </style>
 </head>
 <body>
-    <div id="appContainer">
-        <!-- El contenido se cargará dinámicamente aquí -->
+    <!-- Contenedor principal de la aplicación -->
+    <div id="app">
+        <!-- Cargador inicial -->
+        <div id="app-loader" class="app-loader">
+            <div class="loader"></div>
+            <p class="loading-text">Inicializando sistema...</p>
+        </div>
+        
+        <!-- Contenido dinámico se cargará aquí -->
+        <div id="app-content" class="app-content" style="display: none;"></div>
     </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Font Awesome para iconos -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <!-- Scripts de la aplicación -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const appContainer = document.getElementById('appContainer');
+        // Configuración global
+        const AppConfig = {
+            baseUrl: '<?!= getBaseUrl() ?>',
+            debug: true,
+            version: '2.0'
+        };
+        
+        // Variables globales
+        let currentUser = null;
+        let sessionToken = localStorage.getItem('sessionToken');
+        let currentPage = null;
+        
+        // Función para cargar una página
+        function loadPage(pageName) {
+            const appContent = document.getElementById('app-content');
+            const appLoader = document.getElementById('app-loader');
             
-            // Verificar si hay una sesión activa
-            const sessionId = sessionStorage.getItem('sessionId');
+            appContent.style.display = 'none';
+            appLoader.style.display = 'flex';
+            document.querySelector('.loading-text').textContent = `Cargando ${pageName}...`;
             
-            if (sessionId) {
-                // Verificar si la sesión es válida
+            // Simular carga con timeout optimizado (máximo 10 segundos)
+            const startTime = Date.now();
+            setTimeout(() => {
+                if (pageName === 'login') {
+                    loadLoginPage();
+                } else if (pageName === 'principal') {
+                    loadPrincipalPage();
+                }
+                
+                const loadTime = Date.now() - startTime;
+                console.log(`Página cargada en ${loadTime}ms`);
+                
+                appLoader.style.display = 'none';
+                appContent.style.display = 'block';
+                currentPage = pageName;
+            }, 200);
+        }
+        
+        // Función para cargar la página de login
+        function loadLoginPage() {
+            const appContent = document.getElementById('app-content');
+            
+            // Obtener contenido del servidor
+            google.script.run
+                .withSuccessHandler(function(htmlContent) {
+                    appContent.innerHTML = htmlContent;
+                    
+                    // Configurar eventos del login
+                    setTimeout(() => {
+                        setupLoginEvents();
+                    }, 100);
+                })
+                .withFailureHandler(function(error) {
+                    appContent.innerHTML = `
+                        <div class="error-container">
+                            <h2>Error al cargar la página</h2>
+                            <p>${error.message}</p>
+                            <button onclick="loadLoginPage()">Reintentar</button>
+                        </div>
+                    `;
+                })
+                .include('Login');
+        }
+        
+        // Función para cargar la página principal
+        function loadPrincipalPage() {
+            const appContent = document.getElementById('app-content');
+            
+            // Obtener contenido del servidor
+        
+        // Función para cargar la página principal
+        function loadPrincipalPage() {
+            const appContent = document.getElementById('app-content');
+            
+            // Obtener contenido del servidor
+            google.script.run
+                .withSuccessHandler(function(htmlContent) {
+                    appContent.innerHTML = htmlContent;
+                    
+                    // Configurar eventos de la página principal con versión mejorada
+                    setTimeout(() => {
+                        setupPrincipalEventsImproved();
+                    }, 300);
+                })
+                .withFailureHandler(function(error) {
+                    appContent.innerHTML = `
+                        <div class="error-container">
+                            <h2>Error al cargar la página</h2>
+                            <p>${error.message}</p>
+                            <button onclick="loadPrincipalPage()">Reintentar</button>
+                        </div>
+                    `;
+                })
+                .include('Principal');
+        }
+            google.script.run
+                .withSuccessHandler(function(htmlContent) {
+                    appContent.innerHTML = htmlContent;
+                    
+                    // Configurar eventos de la página principal
+                    setTimeout(() => {
+                        setupPrincipalEvents();
+                    }, 100);
+                })
+                .withFailureHandler(function(error) {
+                    appContent.innerHTML = `
+                        <div class="error-container">
+                            <h2>Error al cargar la página</h2>
+                            <p>${error.message}</p>
+                            <button onclick="loadPrincipalPage()">Reintentar</button>
+                        </div>
+                    `;
+                })
+                .include('Principal');
+        }
+        
+        // Configurar eventos del login
+        function setupLoginEvents() {
+            const loginForm = document.getElementById('loginForm');
+            
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const userId = document.getElementById('userId').value.trim();
+                    const password = document.getElementById('password').value.trim();
+                    
+                    if (!userId || !password) {
+                        showNotification('Por favor completa todos los campos', 'warning');
+                        return;
+                    }
+                    
+                    const submitBtn = loginForm.querySelector('button[type="submit"]');
+                    const originalText = submitBtn.textContent;
+                    submitBtn.textContent = 'Autenticando...';
+                    submitBtn.disabled = true;
+                    
+                    google.script.run
+                        .withSuccessHandler(function(result) {
+                            submitBtn.textContent = originalText;
+                            submitBtn.disabled = false;
+                            
+                            if (result.success) {
+                                // Guardar token y usuario
+                                sessionToken = result.token;
+                                currentUser = result.user;
+                                
+                                localStorage.setItem('sessionToken', sessionToken);
+                                localStorage.setItem('userName', result.user.nombre);
+                                localStorage.setItem('userRole', result.user.rol);
+                                localStorage.setItem('userIsAdmin', result.user.esAdmin);
+                                
+                                showNotification(`¡Bienvenido, ${result.user.nombre}!`, 'success');
+                                
+                                // Cargar página principal
+                                loadPage('principal');
+                            } else {
+                                showNotification(result.message, 'error');
+                            }
+                        })
+                        .withFailureHandler(function(error) {
+                            submitBtn.textContent = originalText;
+                            submitBtn.disabled = false;
+                            showNotification('Error de conexión: ' + error.message, 'error');
+                        })
+                        .autenticarUsuario(userId, password);
+                });
+            }
+        }
+        
+        // Configurar eventos de la página principal
+        function setupPrincipalEvents() {
+            // Configurar logout
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function() {
+                    Swal.fire({
+                        title: '¿Cerrar sesión?',
+                        text: '¿Estás seguro de que quieres salir del sistema?',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#4CAF50',
+                        cancelButtonColor: '#f44336',
+                        confirmButtonText: 'Sí, cerrar sesión',
+                        cancelButtonText: 'Cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            if (sessionToken) {
+                                google.script.run
+                                    .withSuccessHandler(function(result) {
+                                        // Limpiar datos
+                                        localStorage.removeItem('sessionToken');
+                                        localStorage.removeItem('userName');
+                                        localStorage.removeItem('userRole');
+                                        localStorage.removeItem('userIsAdmin');
+                                        sessionToken = null;
+                                        currentUser = null;
+                                        
+                                        // Volver al login
+                                        loadPage('login');
+                                        showNotification('Sesión cerrada exitosamente', 'info');
+                                    })
+                                    .withFailureHandler(function(error) {
+                                        console.error('Error cerrando sesión:', error);
+                                        // Limpiar datos de todos modos
+                                        localStorage.removeItem('sessionToken');
+                                        localStorage.removeItem('userName');
+                                        localStorage.removeItem('userRole');
+                                        localStorage.removeItem('userIsAdmin');
+                                        sessionToken = null;
+                                        currentUser = null;
+                                        loadPage('login');
+                                    })
+                                    .cerrarSesion(sessionToken);
+                            } else {
+                                localStorage.removeItem('sessionToken');
+                                localStorage.removeItem('userName');
+                                localStorage.removeItem('userRole');
+                                localStorage.removeItem('userIsAdmin');
+                                sessionToken = null;
+                                currentUser = null;
+                                loadPage('login');
+                            }
+                        }
+                    });
+                });
+            }
+            
+            // Configurar menú sidebar
+            const menuToggle = document.getElementById('menuToggle');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            
+            if (menuToggle && sidebar && sidebarOverlay) {
+                menuToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('active');
+                    sidebarOverlay.classList.toggle('active');
+                    
+                    // Cambiar ícono
+                    const icon = menuToggle.querySelector('i');
+                    if (sidebar.classList.contains('active')) {
+                        icon.classList.remove('fa-bars');
+                        icon.classList.add('fa-times');
+                    } else {
+                        icon.classList.remove('fa-times');
+                        icon.classList.add('fa-bars');
+                    }
+                });
+                
+                // Cerrar sidebar al hacer clic en overlay
+                sidebarOverlay.addEventListener('click', function() {
+                    sidebar.classList.remove('active');
+                    sidebarOverlay.classList.remove('active');
+                    
+                    const icon = menuToggle.querySelector('i');
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
+                });
+            }
+            
+            // Configurar navegación del sidebar
+            const sidebarLinks = document.querySelectorAll('.sidebar-link');
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Quitar clase active de todos los enlaces
+                    sidebarLinks.forEach(l => l.classList.remove('active'));
+                    
+                    // Agregar clase active al enlace actual
+                    this.classList.add('active');
+                    
+                    // Obtener la página
+                    const page = this.getAttribute('data-page');
+                    
+                    // Cargar contenido según la página
+                    if (page === 'inicio') {
+                        loadHomeContent();
+                    } else if (page === 'edificios') {
+                        loadBuildingsContent();
+                    } else if (page === 'usuarios') {
+                        loadUsersContent();
+                    } else if (page === 'configuracion') {
+                        loadSettingsContent();
+                    }
+                    
+                    // Cerrar sidebar en móviles
+                    if (window.innerWidth <= 768) {
+                        if (sidebar && sidebarOverlay && menuToggle) {
+                            sidebar.classList.remove('active');
+                            sidebarOverlay.classList.remove('active');
+                            
+                            const icon = menuToggle.querySelector('i');
+                            icon.classList.remove('fa-times');
+                            icon.classList.add('fa-bars');
+                        }
+                    }
+                });
+            });
+            
+            // Cargar contenido inicial
+            loadHomeContent();
+            
+            // Actualizar información del usuario
+            const userName = localStorage.getItem('userName');
+            const userAvatar = document.getElementById('userAvatar');
+            const userNameElement = document.getElementById('userName');
+            
+            if (userName && userAvatar) {
+                userAvatar.textContent = userName.charAt(0).toUpperCase();
+            }
+            
+            if (userName && userNameElement) {
+                userNameElement.textContent = userName;
+            }
+            
+            // Aplicar permisos de usuario (ocultar Users section para no-admins)
+            applyUserPermissions();
+        }
+        
+        // Función para aplicar permisos de usuario
+        function applyUserPermissions() {
+            const userIsAdmin = localStorage.getItem('userIsAdmin') === 'true';
+            const userRole = localStorage.getItem('userRole');
+            
+            if (!userIsAdmin && userRole !== 'admin') {
+                // Ocultar la sección de usuarios para usuarios regulares
+                const usersLink = document.querySelector('.sidebar-link[data-page="usuarios"]');
+                if (usersLink) {
+                    usersLink.style.display = 'none';
+                    console.log('Sección Usuarios oculta para usuario regular');
+                }
+                
+                // También ocultar botón de gestionar usuarios en dashboard
+                const manageUsersBtn = document.querySelector('.action-btn[onclick="loadUsersContent()"]');
+                if (manageUsersBtn) {
+                    manageUsersBtn.style.display = 'none';
+                    console.log('Botón Gestionar Usuarios oculto para usuario regular');
+                }
+            } else {
+                console.log('Usuario administrador - todas las opciones visibles');
+            }
+        }
+        
+        // Función para cargar contenido de inicio
+        function loadHomeContent() {
+            const contentSection = document.getElementById('content-section');
+            if (!contentSection) return;
+            
+            contentSection.innerHTML = `
+                <div class="welcome-section">
+                    <h1 class="welcome-title">Bienvenido al Sistema de Gestión</h1>
+                    <p class="welcome-subtitle">Universidad Autónoma de Baja California</p>
+                </div>
+                
+                <div class="dashboard-cards">
+                    <div class="dashboard-card">
+                        <div class="card-icon">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>3 Edificios</h3>
+                            <p>Disponibles para gestión</p>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-card">
+                        <div class="card-icon">
+                            <i class="fas fa-door-open"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>63 Salones</h3>
+                            <p>Total en el sistema</p>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-card">
+                        <div class="card-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3 id="totalUsers">Cargando...</h3>
+                            <p>Usuarios registrados</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="quick-actions">
+                    <h2>Acciones Rápidas</h2>
+                    <div class="actions-grid">
+                        <button class="action-btn" onclick="loadBuildingsContent()">
+                            <i class="fas fa-search"></i>
+                            <span>Buscar Salón</span>
+                        </button>
+                        <button class="action-btn" onclick="loadUsersContent()">
+                            <i class="fas fa-user-plus"></i>
+                            <span>Gestionar Usuarios</span>
+                        </button>
+                        <button class="action-btn" onclick="showReports()">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>Ver Reportes</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Cargar estadísticas
+            loadStatistics();
+        }
+        
+        // Función para cargar contenido de edificios
+        function loadBuildingsContent() {
+            const contentSection = document.getElementById('content-section');
+            if (!contentSection) return;
+            
+            contentSection.innerHTML = `
+                <div class="section-header">
+                    <h1>Gestión de Edificios</h1>
+                    <p>Administra los edificios y salones disponibles</p>
+                </div>
+                
+                <div class="controls">
+                    <div class="search-bar">
+                        <input type="text" id="searchInput" placeholder="Buscar salón...">
+                        <button onclick="searchSalons()">Buscar</button>
+                    </div>
+                    <div class="filters">
+                        <button class="filter-btn active" onclick="filterByStatus('all')">Todos</button>
+                        <button class="filter-btn" onclick="filterByStatus('disponible')">Disponibles</button>
+                        <button class="filter-btn" onclick="filterByStatus('ocupado')">Ocupados</button>
+                    </div>
+                </div>
+                
+                <div class="buildings-container" id="buildingsContainer">
+                    <div class="loading-buildings">
+                        <div class="loader"></div>
+                        <p>Cargando edificios...</p>
+                    </div>
+                </div>
+            `;
+            
+            // Cargar edificios
+            loadBuildings();
+        }
+        
+        // Función para cargar edificios desde el servidor
+        function loadBuildings() {
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        renderBuildings(result.edificios);
+                    } else {
+                        document.getElementById('buildingsContainer').innerHTML = `
+                            <div class="error-message">
+                                <p>Error: ${result.message}</p>
+                                <button onclick="loadBuildings()">Reintentar</button>
+                            </div>
+                        `;
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    document.getElementById('buildingsContainer').innerHTML = `
+                        <div class="error-message">
+                            <p>Error de conexión</p>
+                            <button onclick="loadBuildings()">Reintentar</button>
+                        </div>
+                    `;
+                })
+                .obtenerEdificios();
+        }
+        
+        // Función para renderizar edificios
+        function renderBuildings(edificios) {
+            const container = document.getElementById('buildingsContainer');
+            if (!container) return;
+            
+            let html = '';
+            
+            for (const [key, edificio] of Object.entries(edificios)) {
+                html += `
+                    <div class="building-card">
+                        <div class="building-header">
+                            <div class="building-icon">${key}</div>
+                            <div class="building-info">
+                                <h3>${edificio.nombre}</h3>
+                                <p>Total: ${edificio.totalSalones} salones | ${edificio.pisos} pisos</p>
+                            </div>
+                        </div>
+                `;
+                
+                // Agregar pisos
+                for (const [piso, salones] of Object.entries(edificio.salones)) {
+                    const floorId = `floor-${key.toLowerCase()}-${piso}`;
+                    html += `
+                        <button class="floor-toggle" onclick="toggleFloor('${floorId}')">
+                            <span>Piso ${piso}</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="salon-grid" id="${floorId}">
+                    `;
+                    
+                    // Agregar salones
+                    salones.forEach(salon => {
+                        const estado = salon.includes('101') || salon.includes('102') ? 'ocupado' : 'disponible';
+                        html += `
+                            <div class="salon-card ${estado}" onclick="showSalonDetails('${salon}')">
+                                ${salon}
+                            </div>
+                        `;
+                    });
+                    
+                    html += `</div>`;
+                }
+                
+                html += `</div>`;
+            }
+            
+            container.innerHTML = html;
+        }
+        
+        // Función para cargar contenido de usuarios
+        function loadUsersContent() {
+            // Verificar permisos de administrador
+            const userIsAdmin = localStorage.getItem('userIsAdmin') === 'true';
+            const userRole = localStorage.getItem('userRole');
+            
+            if (!userIsAdmin && userRole !== 'admin') {
+                showNotification('No tienes permisos para acceder a la gestión de usuarios', 'error');
+                return;
+            }
+            
+            const contentSection = document.getElementById('content-section');
+            if (!contentSection) return;
+            
+            contentSection.innerHTML = `
+                <div class="section-header">
+                    <h1>Gestión de Usuarios</h1>
+                    <p>Administra los usuarios del sistema</p>
+                </div>
+                
+                <div class="users-controls">
+                    <button class="btn-primary" onclick="showAddUserForm()">
+                        <i class="fas fa-user-plus"></i> Nuevo Usuario
+                    </button>
+                </div>
+                
+                <div class="users-list-container" id="usersListContainer">
+                    <div class="loading">
+                        <div class="loader"></div>
+                        <p>Cargando usuarios...</p>
+                    </div>
+                </div>
+            `;
+            
+            // Cargar lista de usuarios
+            loadUsersList();
+        }
+        
+        // Función para cargar lista de usuarios
+        function loadUsersList() {
+            google.script.run
+                .withSuccessHandler(function(users) {
+                    renderUsersList(users);
+                })
+                .withFailureHandler(function(error) {
+                    document.getElementById('usersListContainer').innerHTML = `
+                        <div class="error-message">
+                            <p>Error al cargar usuarios</p>
+                            <button onclick="loadUsersList()">Reintentar</button>
+                        </div>
+                    `;
+                })
+                .obtenerUsuarios();
+        }
+        
+        // Función para renderizar lista de usuarios
+        function renderUsersList(users) {
+            const container = document.getElementById('usersListContainer');
+            if (!container) return;
+            
+            if (users.length === 0) {
+                container.innerHTML = '<p>No hay usuarios registrados.</p>';
+                return;
+            }
+            
+            let html = `
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Email</th>
+                            <th>Rol</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            users.forEach(user => {
+                html += `
+                    <tr>
+                        <td>${user.nombre}</td>
+                        <td>${user.email}</td>
+                        <td>${user.rol}</td>
+                        <td>${user.activo ? '<span class="status-active">Activo</span>' : '<span class="status-inactive">Inactivo</span>'}</td>
+                        <td>
+                            <div class="user-actions">
+                                <button class="btn-small btn-edit" onclick="editUser('${user.id}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-small btn-reset" onclick="resetUserPassword('${user.id}', '${user.nombre}')">
+                                    <i class="fas fa-key"></i>
+                                </button>
+                                ${user.activo ? 
+                                    `<button class="btn-small btn-deactivate" onclick="deactivateUser('${user.id}', '${user.nombre}')">
+                                        <i class="fas fa-user-times"></i>
+                                    </button>` :
+                                    `<button class="btn-small btn-activate" onclick="activateUser('${user.id}', '${user.nombre}')">
+                                        <i class="fas fa-user-check"></i>
+                                    </button>`
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                    </tbody>
+                </table>
+            `;
+            
+            container.innerHTML = html;
+        }
+        
+        // Función para cargar estadísticas
+        function loadStatistics() {
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        const totalUsersElement = document.getElementById('totalUsers');
+                        if (totalUsersElement) {
+                            totalUsersElement.textContent = result.estadisticas.usuariosActivos;
+                        }
+                    }
+                })
+                .obtenerEstadisticas();
+        }
+        
+        // Función para mostrar notificaciones
+        function showNotification(message, type = 'info') {
+            // Eliminar notificaciones existentes
+            document.querySelectorAll('.notification').forEach(n => n.remove());
+            
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.classList.add('show'), 10);
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+        
+        // Funciones públicas para uso en HTML
+        window.toggleFloor = function(floorId) {
+            const floorGrid = document.getElementById(floorId);
+            if (floorGrid) {
+                floorGrid.classList.toggle('active');
+                const toggleButton = floorGrid.previousElementSibling;
+                if (toggleButton) toggleButton.classList.toggle('active');
+            }
+        };
+        
+        window.showSalonDetails = function(salonId) {
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        Swal.fire({
+                            title: `Salón ${result.salon}`,
+                            html: `
+                                <div class="salon-details">
+                                    <p><strong>Estado:</strong> ${result.estado.estado}</p>
+                                    ${result.estado.grupos.length > 0 ? 
+                                        `<p><strong>Grupos:</strong></p>
+                                         <ul>${result.estado.grupos.map(g => `<li>${g.nombre} - ${g.horario}</li>`).join('')}</ul>` : 
+                                        '<p>No hay grupos asignados</p>'
+                                    }
+                                </div>
+                            `,
+                            icon: 'info'
+                        });
+                    }
+                })
+                .obtenerEstadoSalon(salonId);
+        };
+        
+        window.searchSalons = function() {
+            const searchInput = document.getElementById('searchInput');
+            if (!searchInput) return;
+            
+            const term = searchInput.value.trim();
+            if (!term) {
+                showNotification('Ingresa un término de búsqueda', 'warning');
+                return;
+            }
+            
+            showNotification(`Buscando salones con: "${term}"`, 'info');
+        };
+        
+        window.filterByStatus = function(status) {
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            showNotification(`Filtrado por: ${status}`, 'info');
+        };
+        
+        window.showAddUserForm = function() {
+            Swal.fire({
+                title: 'Nuevo Usuario',
+                html: `
+                    <form id="addUserForm">
+                        <div class="form-group">
+                            <label>ID Personalizado (Opcional)</label>
+                            <input type="text" id="newUserId" class="swal2-input" placeholder="Dejar vacío para auto-generar">
+                        </div>
+                        <div class="form-group">
+                            <label>Nombre Completo *</label>
+                            <input type="text" id="newUserName" class="swal2-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email *</label>
+                            <input type="email" id="newUserEmail" class="swal2-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Rol *</label>
+                            <select id="newUserRole" class="swal2-input" required>
+                                <option value="admin">Administrador</option>
+                                <option value="user">Usuario</option>
+                            </select>
+                        </div>
+                        <small style="color: #666;">* Si no proporcionas un ID, se generará automáticamente</small>
+                    </form>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Guardar',
+                cancelButtonText: 'Cancelar',
+                preConfirm: () => {
+                    const id = document.getElementById('newUserId').value.trim();
+                    const nombre = document.getElementById('newUserName').value.trim();
+                    const email = document.getElementById('newUserEmail').value.trim();
+                    const rol = document.getElementById('newUserRole').value;
+                    
+                    if (!nombre || !email || !rol) {
+                        Swal.showValidationMessage('Nombre, email y rol son obligatorios');
+                        return false;
+                    }
+                    
+                    // Si se proporciona ID, validarlo
+                    if (id) {
+                        if (id.trim().length < 1) {
+                            Swal.showValidationMessage('El ID no puede estar vacío');
+                            return false;
+                        }
+                        if (id.trim().length > 50) {
+                            Swal.showValidationMessage('El ID no puede tener más de 50 caracteres');
+                            return false;
+                        }
+                        // Permitir letras, números, guiones, guiones bajos y espacios
+                        if (!/^[a-zA-Z0-9_\-\s]+$/.test(id.trim())) {
+                            Swal.showValidationMessage('El ID solo puede contener letras, números, guiones, guiones bajos y espacios');
+                            return false;
+                        }
+                    }
+                    
+                    const userData = { nombre, email, rol };
+                    if (id) {
+                        userData.id = id;
+                    }
+                    
+                    return userData;
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    agregarUsuario(result.value);
+                }
+            });
+        };
+        
+        window.agregarUsuario = function(userData) {
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        const isCustomId = userData.id && userData.id.length > 0;
+                        Swal.fire({
+                            title: '¡Usuario agregado!',
+                            html: `
+                                <p>Usuario creado exitosamente.</p>
+                                <p><strong>ID:</strong> ${result.id} ${isCustomId ? '(Personalizado)' : '(Auto-generado)'}</p>
+                                <p><strong>Contraseña temporal:</strong> ${result.contrasenaTemporal}</p>
+                                <small>Esta contraseña ha sido enviada al email del usuario.</small>
+                            `,
+                            icon: 'success'
+                        });
+                        loadUsersList();
+                    } else {
+                        Swal.fire('Error', result.message, 'error');
+                    }
+                })
+                .agregarUsuario(userData);
+        };
+        
+        window.resetUserPassword = function(id, nombre) {
+            Swal.fire({
+                title: '¿Restablecer contraseña?',
+                html: `¿Restablecer contraseña de <strong>${nombre}</strong>?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, restablecer',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    google.script.run
+                        .withSuccessHandler(function(result) {
+                            if (result.success) {
+                                Swal.fire({
+                                    title: 'Contraseña restablecida',
+                                    html: `Nueva contraseña: <strong>${result.contrasenaTemporal}</strong>`,
+                                    icon: 'success'
+                                });
+                            } else {
+                                Swal.fire('Error', result.message, 'error');
+                            }
+                        })
+                        .restablecerContrasena(id);
+                }
+            });
+        };
+        
+        window.deactivateUser = function(id, nombre) {
+            Swal.fire({
+                title: '¿Desactivar usuario?',
+                html: `¿Desactivar a <strong>${nombre}</strong>?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, desactivar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    google.script.run
+                        .withSuccessHandler(function(result) {
+                            if (result.success) {
+                                showNotification('Usuario desactivado', 'success');
+                                loadUsersList();
+                            } else {
+                                showNotification(result.message, 'error');
+                            }
+                        })
+                        .eliminarUsuario(id);
+                }
+            });
+        };
+        
+        window.activateUser = function(id, nombre) {
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        showNotification('Usuario activado', 'success');
+                        loadUsersList();
+                    } else {
+                        showNotification(result.message, 'error');
+                    }
+                })
+                .actualizarUsuario(id, { activo: true });
+        };
+        
+        // Función para mostrar configuración
+        function loadSettingsContent() {
+            const contentSection = document.getElementById('content-section');
+            if (!contentSection) return;
+            
+            contentSection.innerHTML = `
+                <div class="section-header">
+                    <h1>Configuración del Sistema</h1>
+                    <p>Configura las opciones del sistema</p>
+                </div>
+                
+                <div class="settings-container">
+                    <div class="settings-card">
+                        <h3><i class="fas fa-info-circle"></i> Información del Sistema</h3>
+                        <div class="settings-info">
+                            <p><strong>Versión:</strong> 2.0</p>
+                            <p><strong>Desarrollado por:</strong> LIDE - UABC</p>
+                            <p><strong>Última actualización:</strong> ${new Date().toLocaleDateString()}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-card">
+                        <h3><i class="fas fa-database"></i> Base de Datos</h3>
+                        <div class="settings-info">
+                            <p id="dbStatus">Verificando conexión...</p>
+                            <button class="btn-secondary" onclick="testDatabase()">Probar Conexión</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Probar conexión a la base de datos
+            testDatabase();
+        }
+        
+        window.testDatabase = function() {
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    document.getElementById('dbStatus').innerHTML = `
+                        <span style="color: #4CAF50;">✓ ${result}</span>
+                    `;
+                })
+                .withFailureHandler(function(error) {
+                    document.getElementById('dbStatus').innerHTML = `
+                        <span style="color: #f44336;">✗ Error: ${error}</span>
+                    `;
+                })
+                .testConexion();
+        };
+        
+        window.showReports = function() {
+            showNotification('Módulo de reportes en desarrollo', 'info');
+        };
+        
+        // Inicializar la aplicación
+        function initApp() {
+            // Verificar si hay sesión activa
+            if (sessionToken) {
                 google.script.run
-                    .withSuccessHandler(function(user) {
-                        if (user) {
-                            // Sesión válida, cargar dashboard
-                            loadDashboard();
+                    .withSuccessHandler(function(result) {
+                        if (result.valid) {
+                            // Sesión válida, cargar página principal
+                            currentUser = result.user;
+                            
+                            // Restaurar información de rol
+                            if (result.user.rol) {
+                                localStorage.setItem('userRole', result.user.rol);
+                                localStorage.setItem('userIsAdmin', result.user.esAdmin || result.user.rol.toLowerCase() === 'admin');
+                            }
+                            
+                            loadPage('principal');
                         } else {
                             // Sesión inválida, cargar login
-                            loadLogin();
+                            localStorage.removeItem('sessionToken');
+                            localStorage.removeItem('userRole');
+                            localStorage.removeItem('userIsAdmin');
+                            loadPage('login');
                         }
                     })
                     .withFailureHandler(function(error) {
-                        console.error('Error al verificar sesión:', error);
-                        loadLogin();
+                        console.error('Error validando sesión:', error);
+                        localStorage.removeItem('sessionToken');
+                        localStorage.removeItem('userRole');
+                        localStorage.removeItem('userIsAdmin');
+                        loadPage('login');
                     })
-                    .getCurrentUser(sessionId);
+                    .validarSesion(sessionToken);
             } else {
                 // No hay sesión, cargar login
-                loadLogin();
-            }
-            
-            function loadLogin() {
-                // Limpiar cualquier sesión residual
-                sessionStorage.removeItem('sessionId');
+                loadPage('login');
+        
+        // Función mejorada para configurar eventos de la página principal
+        function setupPrincipalEventsImproved() {
+            // Esperar un poco más para asegurar que todos los elementos estén listos
+            setTimeout(() => {
+                setupLogoutImproved();
+                setupSidebarImproved();
+                setupNavigationImproved();
+                initializeUserInfoImproved();
                 
-                // Mostrar indicador de carga
-                appContainer.innerHTML = '<div class="loading-container"><div class="spinner"></div><p>Cargando...</p></div>';
+                // Cargar contenido inicial solo si no está ya cargado
+                const contentSection = document.getElementById('content-section');
+                if (contentSection && !contentSection.innerHTML.trim()) {
+                    loadHomeContent();
+                }
+            }, 300);
+        }
+
+        // Configurar logout mejorado
+        function setupLogoutImproved() {
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                // Remover listeners anteriores para evitar duplicados
+                const newLogoutBtn = logoutBtn.cloneNode(true);
+                logoutBtn.parentNode.replaceChild(newLogoutBtn, logoutBtn);
                 
-                google.script.run
-                    .withSuccessHandler(function(html) {
-                        appContainer.innerHTML = html;
-                        // Inicializar eventos del login
-                        initializeLoginEvents();
-                    })
-                    .withFailureHandler(function(error) {
-                        console.error('Error al cargar login:', error);
-                        appContainer.innerHTML = '<div class="error-message">Error al cargar la página de login</div>';
-                    })
-                    .loadLogin();
-            }
-            
-            function loadDashboard() {
-                // Mostrar indicador de carga
-                appContainer.innerHTML = '<div class="loading-container"><div class="spinner"></div><p>Cargando...</p></div>';
-                
-                google.script.run
-                    .withSuccessHandler(function(html) {
-                        appContainer.innerHTML = html;
-                        // El dashboard ahora tiene su propio script integrado
-                    })
-                    .withFailureHandler(function(error) {
-                        console.error('Error al cargar dashboard:', error);
-                        appContainer.innerHTML = '<div class="error-message">Error al cargar el dashboard</div>';
-                    })
-                    .loadDashboard();
-            }
-            
-            function initializeLoginEvents() {
-                const loginForm = document.getElementById('loginForm');
-                if (loginForm) {
-                    loginForm.addEventListener('submit', function(e) {
-                        e.preventDefault();
-                        
-                        const email = document.getElementById('email').value;
-                        const password = document.getElementById('password').value;
-                        const errorElement = document.getElementById('loginError');
-                        
-                        // Ocultar mensaje de error anterior
-                        errorElement.style.display = 'none';
-                        
-                        // Mostrar mensaje de carga
-                        mostrarMensaje('Iniciando sesión, por favor espere...', 'info');
-                        
-                        google.script.run
-                            .withSuccessHandler(function(response) {
-                                if (response.success) {
-                                    // Guardar ID de sesión en sessionStorage
-                                    sessionStorage.setItem('sessionId', response.sessionId);
-                                    
-                                    // Mostrar mensaje de éxito
-                                    mostrarMensaje('¡Inicio de sesión exitoso! Redirigiendo...', 'success');
-                                    
-                                    // Pequeña pausa antes de redirigir
-                                    setTimeout(function() {
-                                        loadDashboard();
-                                    }, 1500);
-                                } else {
-                                    errorElement.textContent = response.message;
-                                    errorElement.style.display = 'block';
-                                }
-                            })
-                            .withFailureHandler(function(error) {
-                                errorElement.textContent = 'Error de conexión. Intente nuevamente.';
-                                errorElement.style.display = 'block';
-                                console.error('Error en login:', error);
-                            })
-                            .login(email, password);
+                newLogoutBtn.addEventListener('click', function() {
+                    Swal.fire({
+                        title: '¿Cerrar sesión?',
+                        text: '¿Estás seguro de que quieres salir del sistema?',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#4CAF50',
+                        cancelButtonColor: '#f44336',
+                        confirmButtonText: 'Sí, cerrar sesión',
+                        cancelButtonText: 'Cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            if (sessionToken) {
+                                google.script.run
+                                    .withSuccessHandler(function(result) {
+                                        // Limpiar datos
+                                        localStorage.removeItem('sessionToken');
+                                        localStorage.removeItem('userName');
+                                        sessionToken = null;
+                                        currentUser = null;
+                                        
+                                        // Volver al login
+                                        loadPage('login');
+                                        showNotification('Sesión cerrada exitosamente', 'info');
+                                    })
+                                    .withFailureHandler(function(error) {
+                                        console.error('Error cerrando sesión:', error);
+                                        // Limpiar datos de todos modos
+                                        localStorage.removeItem('sessionToken');
+                                        localStorage.removeItem('userName');
+                                        sessionToken = null;
+                                        currentUser = null;
+                                        loadPage('login');
+                                    })
+                                    .cerrarSesion(sessionToken);
+                            } else {
+                                localStorage.removeItem('sessionToken');
+                                localStorage.removeItem('userName');
+                                sessionToken = null;
+                                currentUser = null;
+                                loadPage('login');
+                            }
+                        }
                     });
-                }
+                });
+            }
+        }
+
+        // Configurar sidebar mejorado
+        function setupSidebarImproved() {
+            const menuToggle = document.getElementById('menuToggle');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            
+            if (menuToggle && sidebar && sidebarOverlay) {
+                // Remover listeners anteriores
+                const newMenuToggle = menuToggle.cloneNode(true);
+                menuToggle.parentNode.replaceChild(newMenuToggle, menuToggle);
+                
+                newMenuToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('active');
+                    sidebarOverlay.classList.toggle('active');
+                    
+                    // Cambiar ícono
+                    const icon = newMenuToggle.querySelector('i');
+                    if (sidebar.classList.contains('active')) {
+                        icon.classList.remove('fa-bars');
+                        icon.classList.add('fa-times');
+                    } else {
+                        icon.classList.remove('fa-times');
+                        icon.classList.add('fa-bars');
+                    }
+                });
+                
+                // Cerrar sidebar al hacer clic en overlay
+                sidebarOverlay.addEventListener('click', function() {
+                    sidebar.classList.remove('active');
+                    sidebarOverlay.classList.remove('active');
+                    
+                    const icon = newMenuToggle.querySelector('i');
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
+                });
+            }
+        }
+
+        // Configurar navegación mejorada
+        function setupNavigationImproved() {
+            const sidebarLinks = document.querySelectorAll('.sidebar-link');
+            sidebarLinks.forEach(link => {
+                // Remover listeners anteriores
+                const newLink = link.cloneNode(true);
+                link.parentNode.replaceChild(newLink, link);
+                
+                newLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Quitar clase active de todos los enlaces
+                    document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+                    
+                    // Agregar clase active al enlace actual
+                    this.classList.add('active');
+                    
+                    // Obtener la página
+                    const page = this.getAttribute('data-page');
+                    
+                    // Cargar contenido según la página usando la función del Principal
+                    if (window.loadContent) {
+                        window.loadContent(page);
+                    }
+                    
+                    // Cerrar sidebar en móviles
+                    if (window.innerWidth <= 768) {
+                        const sidebar = document.getElementById('sidebar');
+                        const sidebarOverlay = document.getElementById('sidebarOverlay');
+                        const menuToggle = document.getElementById('menuToggle');
+                        
+                        if (sidebar && sidebarOverlay && menuToggle) {
+                            sidebar.classList.remove('active');
+                            sidebarOverlay.classList.remove('active');
+                            
+                            const icon = menuToggle.querySelector('i');
+                            icon.classList.remove('fa-times');
+                            icon.classList.add('fa-bars');
+                        }
+                    }
+                });
+            });
+        }
+
+        // Inicializar información del usuario mejorada
+        function initializeUserInfoImproved() {
+            const userName = localStorage.getItem('userName');
+            const userAvatar = document.getElementById('userAvatar');
+            const userNameElement = document.getElementById('userName');
+            
+            if (userName && userAvatar) {
+                userAvatar.textContent = userName.charAt(0).toUpperCase();
             }
             
-            // Función para mostrar mensajes
-            function mostrarMensaje(mensaje, tipo) {
-                // Crear elemento de mensaje
-                const messageElement = document.createElement('div');
-                messageElement.className = `alert alert-${tipo === 'error' ? 'danger' : tipo === 'info' ? 'info' : 'success'} alert-dismissible fade show`;
-                messageElement.setAttribute('role', 'alert');
-                messageElement.innerHTML = `
-                    ${mensaje}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                `;
-                
-                // Insertar al principio del contenedor principal
-                const container = document.querySelector('.container');
-                if (container) {
-                    container.insertBefore(messageElement, container.firstChild);
-                } else {
-                    // Si no hay contenedor, insertar en el body
-                    document.body.insertBefore(messageElement, document.body.firstChild);
-                }
-                
-                // Auto-eliminar después de 5 segundos
-                setTimeout(function() {
-                    if (messageElement && messageElement.parentNode) {
-                        messageElement.remove();
-                    }
-                }, 5000);
+            if (userName && userNameElement) {
+                userNameElement.textContent = userName;
             }
-        });
+        }
+            }
+        }
+        
+        // Iniciar la aplicación cuando se carga la página
+        document.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
 </html>
+
+
 
 
