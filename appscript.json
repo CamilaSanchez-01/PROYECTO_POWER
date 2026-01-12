@@ -6,6 +6,7 @@
   "webapp": {
     "executeAs": "USER_DEPLOYING",
     "access": "ANYONE_ANONYMOUS"
+<<<<<<< HEAD:appsscript.json
 <<<<<<< Updated upstream
   }
 }
@@ -20,3 +21,11 @@
   ]
 }
 >>>>>>> Stashed changes
+=======
+  },
+  "oauthScopes": [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/script.container.ui"
+  ]
+}
+>>>>>>> d9feaf4ee6633431209033f3f5ac8d99446cacf9:appscript.json
