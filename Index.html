@@ -3,11 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<<<<<<< Updated upstream
-    <title>Sistema de Asignación de Salones</title>
-<<<<<<< HEAD
-    <link rel="stylesheet" href="css/estilos.css">
-=======
     <title>Sistema de Gestión de Edificios Escolares - UABC</title>
     
     <!-- Font Awesome -->
@@ -1155,892 +1150,22 @@
           .login-container { padding: 20px; }
       }
     </style>
->>>>>>> Stashed changes
-=======
-    <base target="_top">
-    <?!= include('Estilos.html'); ?>
->>>>>>> d9feaf4ee6633431209033f3f5ac8d99446cacf9
 </head>
 <body>
-    <div id="appContainer">
-        <!-- El contenido se cargará dinámicamente aquí -->
+    <!-- Contenedor principal de la aplicación -->
+    <div id="app">
+        <!-- Cargador inicial -->
+        <div id="app-loader" class="app-loader">
+            <div class="loader"></div>
+            <p class="loading-text">Inicializando sistema...</p>
+        </div>
+        
+        <!-- Contenido dinámico se cargará aquí -->
+        <div id="app-content" class="app-content" style="display: none;"></div>
     </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Font Awesome para iconos -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <!-- Scripts de la aplicación -->
     <script>
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-=======
-        document.addEventListener('DOMContentLoaded', function() {
-            const appContainer = document.getElementById('appContainer');
->>>>>>> d9feaf4ee6633431209033f3f5ac8d99446cacf9
-            
-            // Verificar si hay una sesión activa
-            const sessionId = sessionStorage.getItem('sessionId');
-            
-            if (sessionId) {
-                // Verificar si la sesión es válida
-                google.script.run
-                    .withSuccessHandler(function(user) {
-                        if (user) {
-                            // Sesión válida, cargar dashboard
-                            loadDashboard();
-                        } else {
-                            // Sesión inválida, cargar login
-                            loadLogin();
-                        }
-                    })
-                    .withFailureHandler(function(error) {
-                        console.error('Error al verificar sesión:', error);
-                        loadLogin();
-                    })
-                    .getCurrentUser(sessionId);
-            } else {
-                // No hay sesión, cargar login
-                loadLogin();
-            }
-            
-            function loadLogin() {
-                google.script.run
-                    .withSuccessHandler(function(html) {
-                        appContainer.innerHTML = html;
-                        // Inicializar eventos del login
-                        initializeLoginEvents();
-                    })
-                    .withFailureHandler(function(error) {
-                        console.error('Error al cargar login:', error);
-                        appContainer.innerHTML = '<div class="error-message">Error al cargar la página de login</div>';
-                    })
-                    .loadLogin();
-            }
-            
-            function loadDashboard() {
-                google.script.run
-                    .withSuccessHandler(function(html) {
-                        appContainer.innerHTML = html;
-                        // Inicializar eventos del dashboard
-                        initializeDashboardEvents();
-                    })
-                    .withFailureHandler(function(error) {
-                        console.error('Error al cargar dashboard:', error);
-                        appContainer.innerHTML = '<div class="error-message">Error al cargar el dashboard</div>';
-                    })
-                    .loadDashboard();
-            }
-            
-            function initializeLoginEvents() {
-                const loginForm = document.getElementById('loginForm');
-                if (loginForm) {
-                    loginForm.addEventListener('submit', function(e) {
-                        e.preventDefault();
-                        
-                        const email = document.getElementById('email').value;
-                        const password = document.getElementById('password').value;
-                        const errorElement = document.getElementById('loginError');
-                        
-                        // Ocultar mensaje de error anterior
-                        errorElement.style.display = 'none';
-                        
-                        // Mostrar mensaje de carga
-                        mostrarMensaje('Iniciando sesión, por favor espere...', 'info');
-                        
-                        google.script.run
-                            .withSuccessHandler(function(response) {
-                                if (response.success) {
-                                    // Guardar ID de sesión en sessionStorage
-                                    sessionStorage.setItem('sessionId', response.sessionId);
-                                    
-                                    // Mostrar mensaje de éxito
-                                    mostrarMensaje('¡Inicio de sesión exitoso! Redirigiendo...', 'success');
-                                    
-                                    // Pequeña pausa antes de redirigir
-                                    setTimeout(() => {
-                                        loadDashboard();
-                                    }, 1500);
-                                } else {
-                                    errorElement.textContent = response.message;
-                                    errorElement.style.display = 'block';
-                                }
-                            })
-                            .withFailureHandler(function(error) {
-                                errorElement.textContent = 'Error de conexión. Intente nuevamente.';
-                                errorElement.style.display = 'block';
-                                console.error('Error en login:', error);
-                            })
-                            .login(email, password);
-                    });
-                }
-            }
-            
-            function initializeDashboardEvents() {
-                // Obtener ID de sesión de sessionStorage
-                const sessionId = sessionStorage.getItem('sessionId');
-                
-                if (!sessionId) {
-                    // Si no hay sesión, redirigir al login
-                    window.location.reload();
-                    return;
-                }
-                
-                // Verificar sesión y obtener usuario actual
-                google.script.run
-                    .withSuccessHandler(function(user) {
-                        if (!user) {
-                            // Si no hay usuario, redirigir al login
-                            window.location.reload();
-                            return;
-                        }
-                        
-                        currentUser = user;
-                        const userInfoElement = document.getElementById('userInfo');
-                        if (userInfoElement) {
-                            userInfoElement.textContent = `Bienvenido, ${user.email}`;
-                        }
-                        
-                        // Cargar datos iniciales
-                        cargarDatos();
-                        
-                        // Configurar event listeners
-                        configurarEventListeners();
-                        
-                        // No se muestra la sección de administración para ningún usuario
-                    })
-                    .getCurrentUser(sessionId);
-            }
-            
-            // Variables globales
-            let aulas = [];
-            let cursos = [];
-            let profesores = [];
-            let asignaciones = [];
-            let usuarios = [];
-            let permisos = [];
-            let grupos = [];
-            let materias = [];
-            let horarios = [];
-            let currentUser = null;
-            
-            // Configuración de edificios
-            const buildingConfig = {
-                'D': { pisos: [6, 6, 6, 6] }, // 24 aulas
-                'E': { pisos: [6, 6, 6, 5] }, // 23 aulas
-                'F': { pisos: [4, 4, 4, 4] }  // 16 aulas
-            };
-            
-            // Función para cargar datos iniciales
-            function cargarDatos() {
-                google.script.run
-                    .withSuccessHandler(function(data) {
-                        aulas = data.aulas || [];
-                        cursos = data.cursos || [];
-                        profesores = data.profesores || [];
-                        asignaciones = data.asignaciones || [];
-                        usuarios = data.usuarios || [];
-                        permisos = data.permisos || [];
-                        grupos = data.grupos || [];
-                        materias = data.materias || [];
-                        horarios = data.horarios || [];
-                        
-                        // Si no hay aulas, inicializar el sistema
-                        if (aulas.length <= 1) { // Solo encabezado
-                            google.script.run
-                                .withSuccessHandler(function(result) {
-                                    if (result.success) {
-                                        cargarDatos(); // Recargar datos después de inicializar
-                                    } else {
-                                        mostrarMensaje('Error al inicializar el sistema: ' + result.message, 'error');
-                                    }
-                                })
-                                .initializeSheets();
-                            return;
-                        }
-                        
-                        // Actualizar interfaz
-                        actualizarInterfaz();
-                    })
-                    .getAllData();
-            }
-            
-            // Función para actualizar la interfaz
-            function actualizarInterfaz() {
-                // Actualizar tarjetas de edificios
-                actualizarTarjetasEdificios();
-                
-                // Actualizar tablas
-                actualizarTablaAulas();
-                actualizarTablaCursos();
-                actualizarTablaProfesores();
-                actualizarTablaGrupos();
-                actualizarTablaMaterias();
-                actualizarTablaAsignaciones();
-                
-                // Actualizar dropdowns
-                actualizarDropdowns();
-            }
-            
-            // Función para actualizar las tarjetas de edificios
-            function actualizarTarjetasEdificios() {
-                const edificios = ['D', 'E', 'F'];
-                
-                edificios.forEach(edificio => {
-                    const accordionId = `accordion${edificio}`;
-                    const accordion = document.getElementById(accordionId);
-                    
-                    if (!accordion) return;
-                    
-                    // Limpiar contenido existente
-                    accordion.innerHTML = '';
-                    
-                    // Obtener pisos del edificio
-                    const pisos = buildingConfig[edificio].pisos;
-                    
-                    // Crear un accordion item para cada piso
-                    pisos.forEach((aulasPiso, indicePiso) => {
-                        const piso = indicePiso + 1;
-                        const collapseId = `collapse${edificio}${piso}`;
-                        const classroomsId = `classrooms${edificio}${piso}`;
-                        
-                        // Crear accordion item
-                        const accordionItem = document.createElement('div');
-                        accordionItem.className = 'accordion-item';
-                        
-                        accordionItem.innerHTML = `
-                            <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#${collapseId}" aria-expanded="false" aria-controls="${collapseId}">
-                                    Piso ${piso}
-                                </button>
-                            </h2>
-                            <div id="${collapseId}" class="accordion-collapse collapse" data-bs-parent="#${accordionId}">
-                                <div class="accordion-body classroom-grid" id="${classroomsId}">
-                                    <!-- Las aulas se agregarán dinámicamente -->
-                                </div>
-                            </div>
-                        `;
-                        
-                        accordion.appendChild(accordionItem);
-                        
-                        // Agregar aulas al piso
-                        const classroomsContainer = document.getElementById(classroomsId);
-                        const aulasPisoActual = aulas.filter(aula => 
-                            aula[1] === edificio && aula[2] === piso
-                        );
-                        
-                        aulasPisoActual.forEach(aula => {
-                            const classroomBox = document.createElement('div');
-                            classroomBox.className = 'classroom-box';
-                            
-                            // Añadir icono según tipo de aula
-                            let icono = '';
-                            if (aula[7] === 'Accesible') {
-                                icono = '<i class="fas fa-wheelchair"></i> ';
-                            } else if (aula[7] === 'Laboratorio') {
-                                icono = '<i class="fas fa-flask"></i> ';
-                            }
-                            
-                            classroomBox.innerHTML = `${icono}${aula[3]}`;
-                            classroomsContainer.appendChild(classroomBox);
-                        });
-                    });
-                });
-            }
-            
-            // Función para actualizar la tabla de aulas
-            function actualizarTablaAulas() {
-                const tbody = document.querySelector('#classroomsTable tbody');
-                if (!tbody) return;
-                
-                tbody.innerHTML = '';
-                
-                // Saltar encabezado
-                for (let i = 1; i < aulas.length; i++) {
-                    const aula = aulas[i];
-                    const autoAsignableText = (aula[5] === true || aula[5] === 'TRUE') ? 'Sí' : 'No';
-                    const accesibleText = (aula[6] === true || aula[6] === 'TRUE') ? 'Sí' : 'No';
-                    
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${aula[1]}</td>
-                        <td>${aula[2]}</td>
-                        <td>${aula[3]}</td>
-                        <td>${aula[4]}</td>
-                        <td>${aula[7]}</td>
-                        <td>${autoAsignableText}</td>
-                        <td>${accesibleText}</td>
-                    `;
-                    tbody.appendChild(row);
-                }
-            }
-            
-            // Función para actualizar la tabla de cursos
-            function actualizarTablaCursos() {
-                const tbody = document.querySelector('#coursesTable tbody');
-                if (!tbody) return;
-                
-                tbody.innerHTML = '';
-                
-                // Saltar encabezado
-                for (let i = 1; i < cursos.length; i++) {
-                    const curso = cursos[i];
-                    const profesor = profesores.find(p => p[0] === curso[3]);
-                    const profesorNombre = profesor ? profesor[1] : 'No asignado';
-                    
-                    const materia = materias.find(m => m[0] === curso[4]);
-                    const materiaNombre = materia ? materia[1] : 'No asignada';
-                    
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${curso[1]}</td>
-                        <td>${curso[2]}</td>
-                        <td>${profesorNombre}</td>
-                        <td>${curso[5]}</td>
-                        <td>${curso[6]}</td>
-                        <td>${materiaNombre}</td>
-                    `;
-                    tbody.appendChild(row);
-                }
-            }
-            
-            // Función para actualizar la tabla de profesores
-            function actualizarTablaProfesores() {
-                const tbody = document.querySelector('#teachersTable tbody');
-                if (!tbody) return;
-                
-                tbody.innerHTML = '';
-                
-                // Saltar encabezado
-                for (let i = 1; i < profesores.length; i++) {
-                    const profesor = profesores[i];
-                    const discapacidadText = (profesor[3] === true || profesor[3] === 'TRUE') ? 'Sí' : 'No';
-                    const pisoPreferido = profesor[4] || 'Ninguno';
-                    
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${profesor[1]}</td>
-                        <td>${profesor[2]}</td>
-                        <td>${discapacidadText}</td>
-                        <td>${pisoPreferido}</td>
-                    `;
-                    tbody.appendChild(row);
-                }
-            }
-            
-            // Función para actualizar la tabla de grupos
-            function actualizarTablaGrupos() {
-                const tbody = document.querySelector('#groupsTable tbody');
-                if (!tbody) return;
-                
-                tbody.innerHTML = '';
-                
-                // Saltar encabezado
-                for (let i = 1; i < grupos.length; i++) {
-                    const grupo = grupos[i];
-                    const discapacidadText = (grupo[5] === true || grupo[5] === 'TRUE') ? 'Sí' : 'No';
-                    
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${grupo[1]}</td>
-                        <td>${grupo[2]}</td>
-                        <td>${grupo[3]}</td>
-                        <td>${grupo[4]}</td>
-                        <td>${discapacidadText}</td>
-                    `;
-                    tbody.appendChild(row);
-                }
-            }
-            
-            // Función para actualizar la tabla de materias
-            function actualizarTablaMaterias() {
-                const tbody = document.querySelector('#subjectsTable tbody');
-                if (!tbody) return;
-                
-                tbody.innerHTML = '';
-                
-                // Saltar encabezado
-                for (let i = 1; i < materias.length; i++) {
-                    const materia = materias[i];
-                    const obligatoriaText = (materia[3] === true || materia[3] === 'TRUE') ? 'Sí' : 'No';
-                    
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${materia[1]}</td>
-                        <td>${materia[2]}</td>
-                        <td>${materia[4]}</td>
-                        <td>${obligatoriaText}</td>
-                    `;
-                    tbody.appendChild(row);
-                }
-            }
-            
-            // Función para actualizar la tabla de asignaciones
-            function actualizarTablaAsignaciones(fechaFiltro = null) {
-                const tbody = document.querySelector('#assignmentsTable tbody');
-                if (!tbody) return;
-                
-                tbody.innerHTML = '';
-                
-                // Filtrar asignaciones por fecha si se proporciona
-                let asignacionesFiltradas = asignaciones;
-                if (fechaFiltro) {
-                    asignacionesFiltradas = asignaciones.filter(a => a[3] === fechaFiltro);
-                }
-                
-                // Saltar encabezado
-                for (let i = 1; i < asignacionesFiltradas.length; i++) {
-                    const asignacion = asignacionesFiltradas[i];
-                    const curso = cursos.find(c => c[0] === asignacion[1]);
-                    const aula = aulas.find(a => a[0] === asignacion[2]);
-                    const profesor = profesores.find(p => p[0] === asignacion[6]);
-                    const grupo = grupos.find(g => g[0] === asignacion[7]);
-                    
-                    const cursoNombre = curso ? curso[1] : 'Curso no encontrado';
-                    const aulaNombre = aula ? `${aula[1]}${aula[2]}-${aula[3]}` : 'Aula no encontrada';
-                    const profesorNombre = profesor ? profesor[1] : 'Profesor no encontrado';
-                    const grupoNombre = grupo ? grupo[1] : 'Sin grupo';
-                    
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${cursoNombre}</td>
-                        <td>${aulaNombre}</td>
-                        <td>${asignacion[3]}</td>
-                        <td>${asignacion[4]} - ${asignacion[5]}</td>
-                        <td>${profesorNombre}</td>
-                        <td>${grupoNombre}</td>
-                        <td>
-                            <button class="btn btn-danger btn-sm" onclick="eliminarAsignacion('${asignacion[0]}')">Eliminar</button>
-                        </td>
-                    `;
-                    tbody.appendChild(row);
-                }
-            }
-            
-            // Función para actualizar los dropdowns
-            function actualizarDropdowns() {
-                // Actualizar dropdown de profesores para cursos
-                const teacherSelect = document.getElementById('courseTeacher');
-                if (teacherSelect) {
-                    teacherSelect.innerHTML = '<option value="">Seleccionar Profesor</option>';
-                    
-                    // Saltar encabezado
-                    for (let i = 1; i < profesores.length; i++) {
-                        const profesor = profesores[i];
-                        teacherSelect.innerHTML += `<option value="${profesor[0]}">${profesor[1]}</option>`;
-                    }
-                }
-                
-                // Actualizar dropdown de materias para cursos
-                const subjectSelect = document.getElementById('courseSubject');
-                if (subjectSelect) {
-                    subjectSelect.innerHTML = '<option value="">Seleccionar Materia</option>';
-                    
-                    // Saltar encabezado
-                    for (let i = 1; i < materias.length; i++) {
-                        const materia = materias[i];
-                        subjectSelect.innerHTML += `<option value="${materia[0]}">${materia[1]}</option>`;
-                    }
-                }
-                
-                // Actualizar dropdown de cursos para asignaciones
-                const courseSelect = document.getElementById('assignCourse');
-                if (courseSelect) {
-                    courseSelect.innerHTML = '<option value="">Seleccionar Curso</option>';
-                    
-                    // Saltar encabezado
-                    for (let i = 1; i < cursos.length; i++) {
-                        const curso = cursos[i];
-                        courseSelect.innerHTML += `<option value="${curso[0]}">${curso[1]} (${curso[2]})</option>`;
-                    }
-                }
-                
-                // Actualizar dropdown de cursos para auto-asignación
-                const autoAssignCourseSelect = document.getElementById('autoAssignCourse');
-                if (autoAssignCourseSelect) {
-                    autoAssignCourseSelect.innerHTML = '<option value="">Seleccionar Curso</option>';
-                    
-                    // Saltar encabezado
-                    for (let i = 1; i < cursos.length; i++) {
-                        const curso = cursos[i];
-                        autoAssignCourseSelect.innerHTML += `<option value="${curso[0]}">${curso[1]} (${curso[2]})</option>`;
-                    }
-                }
-                
-                // Actualizar dropdown de grupos para asignaciones
-                const groupSelect = document.getElementById('assignGroup');
-                if (groupSelect) {
-                    groupSelect.innerHTML = '<option value="">Seleccionar Grupo (opcional)</option>';
-                    
-                    // Saltar encabezado
-                    for (let i = 1; i < grupos.length; i++) {
-                        const grupo = grupos[i];
-                        groupSelect.innerHTML += `<option value="${grupo[0]}">${grupo[1]} - ${grupo[2]}</option>`;
-                    }
-                }
-                
-                // Actualizar dropdown de edificios
-                const buildingSelect = document.getElementById('assignBuilding');
-                if (buildingSelect) {
-                    const edificios = [...new Set(aulas.map(a => a[1]))];
-                    buildingSelect.innerHTML = '<option value="">Edificio</option>';
-                    
-                    edificios.forEach(edificio => {
-                        buildingSelect.innerHTML += `<option value="${edificio}">${edificio}</option>`;
-                    });
-                }
-            }
-            
-            // Función para configurar los event listeners
-            function configurarEventListeners() {
-                // Botón de cerrar sesión - Usar event delegation
-                document.addEventListener('click', function(event) {
-                    if (event.target && event.target.id === 'logoutBtn') {
-                        event.preventDefault();
-                        
-                        // Mostrar mensaje de confirmación más claro
-                        if (confirm('¿Está seguro de que desea cerrar su sesión actual?')) {
-                            // Mostrar mensaje informativo
-                            mostrarMensaje('Cerrando sesión, espere un momento...', 'info');
-                            
-                            // Pequeña pausa para que el usuario vea el mensaje
-                            setTimeout(() => {
-                                google.script.run
-                                    .withSuccessHandler(function() {
-                                        // Limpiar sessionStorage
-                                        sessionStorage.removeItem('sessionId');
-                                        
-                                        // Mostrar mensaje de despedida
-                                        mostrarMensaje('Sesión cerrada correctamente. Redirigiendo...', 'success');
-                                        
-                                        // Redirigir al login después de un momento
-                                        setTimeout(() => {
-                                            window.location.reload();
-                                        }, 1500);
-                                    })
-                                    .withFailureHandler(function(error) {
-                                        console.error('Error al cerrar sesión:', error);
-                                        mostrarMensaje('Error al cerrar sesión. Por favor, intente nuevamente.', 'error');
-                                    })
-                                    .logout(sessionId);
-                            }, 1000);
-                        }
-                    }
-                });
-                
-                // Formulario de agregar aula
-                const classroomForm = document.getElementById('classroomForm');
-                if (classroomForm) {
-                    classroomForm.addEventListener('submit', function(e) {
-                        e.preventDefault();
-                        
-                        const edificio = document.getElementById('building').value;
-                        const piso = document.getElementById('floor').value;
-                        const numero = document.getElementById('roomNumber').value;
-                        const capacidad = document.getElementById('capacity').value;
-                        const tipo = document.getElementById('roomType').value;
-                        const autoAsignable = document.getElementById('autoAssignable').checked;
-                        const accesible = document.getElementById('accessible').checked;
-                        
-                        google.script.run
-                            .withSuccessHandler(function(result) {
-                                if (result.success) {
-                                    mostrarMensaje('Aula agregada correctamente', 'success');
-                                    classroomForm.reset();
-                                    cargarDatos();
-                                } else {
-                                    mostrarMensaje(result.message, 'error');
-                                }
-                            })
-                            .withFailureHandler(function(error) {
-                                mostrarMensaje('Error al agregar aula: ' + error.message, 'error');
-                            })
-                            .addAula(sessionId, edificio, piso, numero, capacidad, autoAsignable, accesible, tipo);
-                    });
-                }
-                
-                // Formulario de agregar curso
-                const courseForm = document.getElementById('courseForm');
-                if (courseForm) {
-                    courseForm.addEventListener('submit', function(e) {
-                        e.preventDefault();
-                        
-                        const nombre = document.getElementById('courseName').value;
-                        const codigo = document.getElementById('courseCode').value;
-                        const idProfesor = document.getElementById('courseTeacher').value;
-                        const carrera = document.getElementById('courseCareer').value;
-                        const semestre = document.getElementById('courseSemester').value;
-                        const idMateria = document.getElementById('courseSubject').value;
-                        
-                        google.script.run
-                            .withSuccessHandler(function(result) {
-                                if (result.success) {
-                                    mostrarMensaje('Curso agregado correctamente', 'success');
-                                    courseForm.reset();
-                                    cargarDatos();
-                                } else {
-                                    mostrarMensaje(result.message, 'error');
-                                }
-                            })
-                            .withFailureHandler(function(error) {
-                                mostrarMensaje('Error al agregar curso: ' + error.message, 'error');
-                            })
-                            .addCurso(sessionId, nombre, codigo, idProfesor, idMateria, carrera, semestre);
-                    });
-                }
-                
-                // Formulario de agregar profesor
-                const teacherForm = document.getElementById('teacherForm');
-                if (teacherForm) {
-                    teacherForm.addEventListener('submit', function(e) {
-                        e.preventDefault();
-                        
-                        const nombre = document.getElementById('teacherName').value;
-                        const email = document.getElementById('teacherEmail').value;
-                        const discapacidad = document.getElementById('teacherDisability').checked;
-                        const pisoPreferido = document.getElementById('teacherPreferredFloor').value;
-                        
-                        google.script.run
-                            .withSuccessHandler(function(result) {
-                                if (result.success) {
-                                    mostrarMensaje('Profesor agregado correctamente', 'success');
-                                    teacherForm.reset();
-                                    cargarDatos();
-                                } else {
-                                    mostrarMensaje(result.message, 'error');
-                                }
-                            })
-                            .withFailureHandler(function(error) {
-                                mostrarMensaje('Error al agregar profesor: ' + error.message, 'error');
-                            })
-                            .addProfesor(sessionId, nombre, email, discapacidad, pisoPreferido);
-                    });
-                }
-                
-                // Formulario de agregar grupo
-                const groupForm = document.getElementById('groupForm');
-                if (groupForm) {
-                    groupForm.addEventListener('submit', function(e) {
-                        e.preventDefault();
-                        
-                        const numero = document.getElementById('groupNumber').value;
-                        const carrera = document.getElementById('groupCareer').value;
-                        const semestre = document.getElementById('groupSemester').value;
-                        const tamaño = document.getElementById('groupSize').value;
-                        const discapacidad = document.getElementById('groupDisability').checked;
-                        
-                        google.script.run
-                            .withSuccessHandler(function(result) {
-                                if (result.success) {
-                                    mostrarMensaje('Grupo agregado correctamente', 'success');
-                                    groupForm.reset();
-                                    cargarDatos();
-                                } else {
-                                    mostrarMensaje(result.message, 'error');
-                                }
-                            })
-                            .withFailureHandler(function(error) {
-                                mostrarMensaje('Error al agregar grupo: ' + error.message, 'error');
-                            })
-                            .addGrupo(sessionId, numero, carrera, semestre, tamaño, discapacidad);
-                    });
-                }
-                
-                // Formulario de agregar materia
-                const subjectForm = document.getElementById('subjectForm');
-                if (subjectForm) {
-                    subjectForm.addEventListener('submit', function(e) {
-                        e.preventDefault();
-                        
-                        const nombre = document.getElementById('subjectName').value;
-                        const codigo = document.getElementById('subjectCode').value;
-                        const semestre = document.getElementById('subjectSemester').value;
-                        const obligatoria = document.getElementById('subjectRequired').checked;
-                        
-                        google.script.run
-                            .withSuccessHandler(function(result) {
-                                if (result.success) {
-                                    mostrarMensaje('Materia agregada correctamente', 'success');
-                                    subjectForm.reset();
-                                    cargarDatos();
-                                } else {
-                                    mostrarMensaje(result.message, 'error');
-                                }
-                            })
-                            .withFailureHandler(function(error) {
-                                mostrarMensaje('Error al agregar materia: ' + error.message, 'error');
-                            })
-                            .addMateria(sessionId, nombre, codigo, obligatoria, semestre);
-                    });
-                }
-                
-                // Cambio en el selector de edificio
-                const buildingSelect = document.getElementById('assignBuilding');
-                if (buildingSelect) {
-                    buildingSelect.addEventListener('change', function() {
-                        const edificio = this.value;
-                        const floorSelect = document.getElementById('assignFloor');
-                        
-                        if (!edificio) {
-                            floorSelect.innerHTML = '<option value="">Piso</option>';
-                            return;
-                        }
-                        
-                        const pisos = [...new Set(aulas.filter(a => a[1] === edificio).map(a => a[2]))];
-                        floorSelect.innerHTML = '<option value="">Piso</option>';
-                        
-                        pisos.forEach(piso => {
-                            floorSelect.innerHTML += `<option value="${piso}">${piso}</option>`;
-                        });
-                    });
-                }
-                
-                // Cambio en el selector de piso
-                const floorSelect = document.getElementById('assignFloor');
-                if (floorSelect) {
-                    floorSelect.addEventListener('change', function() {
-                        const edificio = document.getElementById('assignBuilding').value;
-                        const piso = this.value;
-                        const classroomSelect = document.getElementById('assignClassroom');
-                        
-                        if (!edificio || !piso) {
-                            classroomSelect.innerHTML = '<option value="">Aula</option>';
-                            return;
-                        }
-                        
-                        const aulasPiso = aulas.filter(a => a[1] === edificio && a[2] == piso);
-                        classroomSelect.innerHTML = '<option value="">Aula</option>';
-                        
-                        aulasPiso.forEach(aula => {
-                            classroomSelect.innerHTML += `<option value="${aula[0]}">${aula[3]}</option>`;
-                        });
-                    });
-                }
-                
-                // Formulario de crear asignación
-                const assignmentForm = document.getElementById('assignmentForm');
-                if (assignmentForm) {
-                    assignmentForm.addEventListener('submit', function(e) {
-                        e.preventDefault();
-                        
-                        const idCurso = document.getElementById('assignCourse').value;
-                        const idAula = document.getElementById('assignClassroom').value;
-                        const fecha = document.getElementById('assignDate').value;
-                        const horaInicio = document.getElementById('assignStart').value;
-                        const horaFin = document.getElementById('assignEnd').value;
-                        const idGrupo = document.getElementById('assignGroup').value;
-                        
-                        // Obtener ID del profesor del curso
-                        const curso = cursos.find(c => c[0] === idCurso);
-                        const idProfesor = curso ? curso[3] : '';
-                        
-                        google.script.run
-                            .withSuccessHandler(function(result) {
-                                if (result.success) {
-                                    mostrarMensaje('Asignación creada correctamente', 'success');
-                                    assignmentForm.reset();
-                                    cargarDatos();
-                                } else {
-                                    mostrarMensaje(result.message, 'error');
-                                    
-                                    // Si hay alternativas, mostrarlas
-                                    if (result.alternativas && result.alternativas.length > 0) {
-                                        const alternativasText = result.alternativas.map(a => 
-                                            `${a.edificio}${a.piso}-${a.numero} (Prioridad: ${a.prioridad})`
-                                        ).join(', ');
-                                        mostrarMensaje(`Alternativas disponibles: ${alternativasText}`, 'info');
-                                    }
-                                }
-                            })
-                            .withFailureHandler(function(error) {
-                                mostrarMensaje('Error al crear asignación: ' + error.message, 'error');
-                            })
-                            .createAssignment(sessionId, idCurso, idAula, fecha, horaInicio, horaFin, idProfesor, idGrupo);
-                    });
-                }
-                
-                // Formulario de auto-asignar aula
-                const autoAssignForm = document.getElementById('autoAssignForm');
-                if (autoAssignForm) {
-                    autoAssignForm.addEventListener('submit', function(e) {
-                        e.preventDefault();
-                        
-                        const idCurso = document.getElementById('autoAssignCourse').value;
-                        const fecha = document.getElementById('autoAssignDate').value;
-                        const horaInicio = document.getElementById('autoAssignStart').value;
-                        const horaFin = document.getElementById('autoAssignEnd').value;
-                        
-                        google.script.run
-                            .withSuccessHandler(function(result) {
-                                if (result.success) {
-                                    mostrarMensaje('Aula auto-asignada correctamente', 'success');
-                                    autoAssignForm.reset();
-                                    cargarDatos();
-                                } else {
-                                    mostrarMensaje(result.message, 'error');
-                                }
-                            })
-                            .withFailureHandler(function(error) {
-                                mostrarMensaje('Error al auto-asignar aula: ' + error.message, 'error');
-                            })
-                            .autoAssignClassroom(sessionId, idCurso, fecha, horaInicio, horaFin);
-                    });
-                }
-                
-                // Botón de filtrar asignaciones por fecha
-                const filterBtn = document.getElementById('filterBtn');
-                if (filterBtn) {
-                    filterBtn.addEventListener('click', function() {
-                        const fecha = document.getElementById('filterDate').value;
-                        actualizarTablaAsignaciones(fecha);
-                    });
-                }
-            }
-            
-            // Función para mostrar mensajes
-            function mostrarMensaje(mensaje, tipo) {
-                // Crear elemento de mensaje
-                const messageElement = document.createElement('div');
-                messageElement.className = `alert alert-${tipo === 'error' ? 'danger' : tipo === 'info' ? 'info' : 'success'} alert-dismissible fade show`;
-                messageElement.setAttribute('role', 'alert');
-                messageElement.innerHTML = `
-                    ${mensaje}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                `;
-                
-                // Insertar al principio del contenedor principal
-                const container = document.querySelector('.container');
-                if (container) {
-                    container.insertBefore(messageElement, container.firstChild);
-                }
-                
-                // Auto-eliminar después de 5 segundos
-                setTimeout(() => {
-                    if (messageElement && messageElement.parentNode) {
-                        messageElement.remove();
-                    }
-                }, 5000);
-            }
-            
-            // Función para eliminar una asignación
-            function eliminarAsignacion(id) {
-                if (confirm('¿Está seguro de eliminar esta asignación?')) {
-                    google.script.run
-                        .withSuccessHandler(function() {
-                            mostrarMensaje('Asignación eliminada correctamente', 'success');
-                            cargarDatos();
-                        })
-                        .withFailureHandler(function(error) {
-                            mostrarMensaje('Error al eliminar asignación: ' + error.message, 'error');
-                        })
-                        .deleteAssignment(sessionId, id);
-                }
-            }
-        });
-=======
         // Configuración global
         const AppConfig = {
             baseUrl: '<?!= getBaseUrl() ?>',
@@ -3796,7 +2921,482 @@
 
         // Inicializar la aplicación cuando se carga la página
         document.addEventListener('DOMContentLoaded', initApp);
->>>>>>> Stashed changes
+    </script>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+      body { font-family: Arial, sans-serif; margin: 0; padding: 10px; background-color: #f4f4f9; }
+      .container { max-width: 1200px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+      h1, h2 { color: #333; }
+      .btn { padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; color: white; font-size: 14px; }
+      .btn-primary { background-color: #007bff; }
+      .btn-secondary { background-color: #6c757d; }
+      .btn:hover { opacity: 0.9; }
+      .section { margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+      .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
+      .modal-content { background-color: #fefefe; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 600px; border-radius: 8px; }
+      .modal-header { display: flex; justify-content: space-between; align-items: center; }
+      .close { color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; }
+      .close:hover { color: black; }
+      .notification { padding: 10px; margin: 10px 0; border-radius: 4px; }
+      .notification.exito { background-color: #d4edda; color: #155724; }
+      .notification.error { background-color: #f8d7da; color: #721c24; }
+      .notification.advertencia { background-color: #fff3cd; color: #856404; }
+      .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 30px; height: 30px; animation: spin 2s linear infinite; margin: 20px auto; }
+      @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+      .grupo-checkbox-item { display: flex; align-items: center; padding: 5px; }
+      .grupo-checkbox-item label { margin-left: 10px; }
+      .grupo-guardado-tag { display: inline-block; background: #e0e0e0; padding: 5px 10px; margin: 5px; border-radius: 15px; font-size: 12px; }
+      .grupo-guardado-tag button { border: none; background: #b71c1c; color: white; border-radius: 50%; margin-left: 8px; cursor: pointer; }
+      table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+      th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+      th { background-color: #f2f2f2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1><i class="fas fa-school"></i> Sistema de Asignación de Salones</h1>
+      
+      <div class="section">
+        <h2>1. Cargar Archivos</h2>
+        <p>Seleccione 5 archivos CSV desde Google Drive para procesar.</p>
+        <button id="btn-procesar" class="btn btn-primary">
+          <i class="fas fa-upload"></i> Seleccionar Archivos y Procesar
+        </button>
+      </div>
+
+      <div id="contenedor-notificaciones"></div>
+      <div id="contenedor-indicador-carga"></div>
+      
+      <div id="contenedor-reporte" class="section" style="display:none;">
+        <h2>Reporte de Asignación</h2>
+        <div id="reporte-contenido"></div>
+      </div>
+
+      <div id="contenedor-asignaciones" class="section" style="display:none;">
+        <h2>Detalle de Asignaciones</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Grupo</th><th>Materia</th><th>Salón</th><th>Piso</th><th>Horario</th><th>Día</th><th>Estado</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-asignacion-body">
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Modal para selección de grupos prioritarios -->
+    <div id="modal-grupo-prioritario" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Seleccionar Grupos Prioritarios</h2>
+          <span class="close">&times;</span>
+        </div>
+        <div id="grupos-guardados-section" style="display:none;">
+            <h4>Grupos Guardados:</h4>
+            <div id="grupos-guardados-list"></div>
+        </div>
+        <input type="text" id="buscador-grupos" placeholder="Buscar grupo..." style="width: 100%; padding: 8px; margin-bottom: 10px;">
+        <div id="grupos-prioritarios-container" style="max-height: 200px; overflow-y: auto; border: 1px solid #ccc; padding: 10px;">
+          <!-- Los checkboxes se generarán aquí -->
+        </div>
+        <div style="margin-top: 15px; text-align: right;">
+          <button id="btn-cancelar-prioridad" class="btn btn-secondary">Cancelar</button>
+          <button id="btn-confirmar-prioridad" class="btn btn-primary">Confirmar y Asignar</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Variable global para almacenar los IDs de los archivos seleccionados
+      let archivosSeleccionadosIds = [];
+
+      // --- COMUNICACIÓN CON EL SERVIDOR ---
+
+      /**
+       * Muestra una notificación en la interfaz.
+       * @param {Object} data - Objeto con {message, type}.
+       */
+      function mostrarNotificacion(data) {
+        const container = document.getElementById('contenedor-notificaciones');
+        const notification = document.createElement('div');
+        notification.className = `notification ${data.type}`;
+        notification.innerHTML = `<i class="fas fa-${data.type === 'exito' ? 'check-circle' : data.type === 'error' ? 'times-circle' : 'exclamation-triangle'}"></i> ${data.message}`;
+        container.appendChild(notification);
+        setTimeout(() => notification.remove(), 5000);
+      }
+      
+      /**
+       * Muestra u oculta el indicador de carga.
+       * @param {boolean} show - True para mostrar, false para ocultar.
+       */
+      function mostrarIndicadorCarga(show) {
+        const container = document.getElementById('contenedor-indicador-carga');
+        container.innerHTML = show ? '<div class="loader"></div> Procesando...' : '';
+      }
+
+      /**
+       * Manejador de errores para las llamadas a google.script.run.
+       * @param {Error} error - El objeto de error.
+       */
+      function showError(error) {
+        mostrarIndicadorCarga(false);
+        mostrarNotificacion({ message: `Error del servidor: ${error.message}`, type: 'error' });
+      }
+      
+      // --- LÓGICA DE LA APLICACIÓN ---
+
+      /**
+       * Se ejecuta cuando los archivos son seleccionados desde el picker de Drive.
+       * @param {string[]} fileIds - Array de IDs de archivos.
+       */
+      function onFilesSelected(fileIds) {
+        if (fileIds.length !== 5) {
+          mostrarNotificacion({ message: 'ERROR: Debe seleccionar exactamente 5 archivos CSV', type: 'error' });
+          return;
+        }
+        archivosSeleccionadosIds = fileIds;
+        mostrarModalGrupoPrioritario();
+      }
+
+      /**
+       * Muestra el modal para seleccionar grupos prioritarios.
+       */
+      function mostrarModalGrupoPrioritario() {
+        const modal = document.getElementById('modal-grupo-prioritario');
+        const container = document.getElementById('grupos-prioritarios-container');
+        const buscador = document.getElementById('buscador-grupos');
+        const gruposGuardadosList = document.getElementById('grupos-guardados-list');
+
+        // Limpiar contenido anterior
+        container.innerHTML = '';
+        buscador.value = '';
+        
+        // Cargar y mostrar grupos guardados
+        google.script.run
+          .withSuccessHandler(function(gruposGuardados) {
+            const section = document.getElementById('grupos-guardados-section');
+            gruposGuardadosList.innerHTML = '';
+            if (gruposGuardados.length > 0) {
+              section.style.display = 'block';
+              gruposGuardados.forEach(grupoId => {
+                const tag = document.createElement('div');
+                tag.className = 'grupo-guardado-tag';
+                tag.innerHTML = `<span>${grupoId}</span><button onclick="quitarGrupoPrioritario('${grupoId}')">&times;</button>`;
+                gruposGuardadosList.appendChild(tag);
+              });
+            } else {
+              section.style.display = 'none';
+            }
+          })
+          .withFailureHandler(showError)
+          .cargarGruposPrioritarios();
+
+        // NOTA: Para obtener la lista de todos los grupos, necesitarías una función en el servidor
+        // que los devuelva. Por ahora, usamos datos de ejemplo.
+        const gruposEjemplo = ['101', '102', '103', '201', '202', 'VIR'];
+        gruposEjemplo.forEach(grupoId => {
+          const item = document.createElement('div');
+          item.className = 'grupo-checkbox-item';
+          item.innerHTML = `
+            <input type="checkbox" id="cb-${grupoId}" value="${grupoId}">
+            <label for="cb-${grupoId}">${grupoId}</label>
+          `;
+          container.appendChild(item);
+        });
+
+        modal.style.display = 'block';
+      }
+
+      function quitarGrupoPrioritario(grupoId) {
+        google.script.run
+          .withSuccessHandler(function() {
+            mostrarNotificacion({ message: `Grupo ${grupoId} removido`, type: 'info' });
+            mostrarModalGrupoPrioritario(); // Recargar modal
+          })
+          .withFailureHandler(showError)
+          .guardarGruposPrioritarios(/* Aquí pasarías la lista actualizada sin el grupo */);
+      }
+
+      function ocultarModal() {
+        document.getElementById('modal-grupo-prioritario').style.display = 'none';
+      }
+
+      /**
+       * Se ejecuta al confirmar la selección de grupos prioritarios.
+       */
+      function continuarAsignacion() {
+        const checkboxes = document.querySelectorAll('#grupos-prioritarios-container input[type="checkbox"]:checked');
+        const gruposPrioritarios = Array.from(checkboxes).map(cb => cb.value);
+
+        if (gruposPrioritarios.length === 0) {
+          mostrarNotificacion({ message: 'Seleccione al menos un grupo prioritario.', type: 'advertencia' });
+          return;
+        }
+
+        // Guardar grupos seleccionados
+        google.script.run
+          .withSuccessHandler(function() {
+            console.log("Grupos prioritarios guardados.");
+          })
+          .withFailureHandler(showError)
+          .guardarGruposPrioritarios(gruposPrioritarios);
+        
+        // Ocultar modal y mostrar carga
+        ocultarModal();
+        mostrarIndicadorCarga(true);
+
+        // Llamar a la función principal de procesamiento
+        google.script.run
+          .withSuccessHandler(onProcesamientoCompleto)
+          .withFailureHandler(showError)
+          .procesarYAsignar(archivosSeleccionadosIds, gruposPrioritarios);
+      }
+
+      /**
+       * Se ejecuta cuando el servidor termina el procesamiento.
+       * @param {Object} resultado - Objeto con los resultados del servidor.
+       */
+      function onProcesamientoCompleto(resultado) {
+        mostrarIndicadorCarga(false);
+        if (!resultado.exito) {
+          mostrarNotificacion({ message: resultado.mensaje, type: 'error' });
+          return;
+        }
+
+        mostrarNotificacion({ message: resultado.mensaje, type: 'exito' });
+        
+        // Mostrar reporte
+        document.getElementById('reporte-contenido').innerText = resultado.reporte.contenido; // Simplificado
+        document.getElementById('contenedor-reporte').style.display = 'block';
+
+        // Poblar tabla de asignaciones
+        poblarTablaAsignacion(resultado.datosAsignaciones);
+        document.getElementById('contenedor-asignaciones').style.display = 'block';
+      }
+      
+      function poblarTablaAsignacion(asignaciones) {
+        const tbody = document.getElementById('tabla-asignacion-body');
+        tbody.innerHTML = '';
+        asignaciones.sort((a, b) => {
+          if (a.clase.grupoId !== b.clase.grupoId) return a.clase.grupoId.localeCompare(b.clase.grupoId);
+          return a.clase.horaInicio.localeCompare(b.clase.horaInicio);
+        }).forEach(asignacion => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${asignacion.clase.grupoId}</td>
+            <td>${asignacion.clase.nombreAsignatura}</td>
+            <td>${asignacion.salon ? asignacion.salon.id : 'No asignado'}</td>
+            <td>${asignacion.salon ? asignacion.salon.piso : '-'}</td>
+            <td>${asignacion.clase.horaInicio} - ${asignacion.clase.horaFin}</td>
+            <td>${asignacion.clase.diaSemana}</td>
+            <td style="color: ${asignacion.salon ? 'green' : 'red'};">${asignacion.salon ? 'Asignado' : 'Sin Salón'}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // --- EVENT LISTENERS ---
+      document.getElementById('btn-procesar').onclick = function() {
+        google.script.run
+          .withFailureHandler(showError)
+          .showFilePicker();
+      };
+
+      document.querySelector('.close').onclick = ocultarModal;
+      document.getElementById('btn-cancelar-prioridad').onclick = function() {
+        ocultarModal();
+        mostrarNotificacion({ message: 'Proceso cancelado', type: 'info' });
+      };
+      document.getElementById('btn-confirmar-prioridad').onclick = continuarAsignacion;
+
+      // Cerrar modal al hacer clic fuera
+      window.onclick = function(event) {
+        const modal = document.getElementById('modal-grupo-prioritario');
+        if (event.target == modal) {
+          ocultarModal();
+        }
+      }
+      
+      // Filtrar grupos en el modal
+      document.getElementById('buscador-grupos').oninput = function() {
+        const filter = this.value.toLowerCase();
+        const items = document.querySelectorAll('.grupo-checkbox-item');
+        items.forEach(item => {
+          const label = item.querySelector('label').textContent.toLowerCase();
+          item.style.display = label.includes(filter) ? 'flex' : 'none';
+        });
+      };
+    </script>
+  </body>
+</html>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Asignación de Salones</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    
+    <!-- PEGA AQUÍ TODO EL BLOQUE <style> ORIGINAL -->
+    <style>
+      /* ... (pega aquí todo el CSS original sin cambios) ... */
+      :root { /* ... */ }
+      * { /* ... */ }
+      /* ... etc ... */
+    </style>
+</head>
+<body>
+    <!-- PEGA AQUÍ TODO EL BLOQUE <body> ORIGINAL, PERO SIN LAS CLASES JS -->
+    <div class="principal-wrapper">
+        <!-- ... (todo el HTML original sin cambios) ... -->
+        <header class="principal-header">...</header>
+        <div class="main-layout">
+            <aside class="sidebar">...</aside>
+            <main class="main-content">
+                <div id="content-section">
+                    <section class="file-upload-section">
+                        <!-- El botón ahora llama a una función del servidor -->
+                        <button id="btn-procesar" class="btn btn-primary">
+                            <i class="fas fa-cogs"></i> Seleccionar Archivos y Asignar
+                        </button>
+                    </section>
+                    <div id="indicador-carga" class="loading-indicator">...</div>
+                    <div id="contenedor-notificaciones" class="notifications-container"></div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal y otros elementos de la UI (sin cambios) -->
+    <div id="modal-grupo-prioritario" class="modal">...</div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // ============================================
+        // CÓDIGO CLIENTE (JAVASCRIPT)
+        // ============================================
+
+        // Variables globales
+        let sistemaProcesado = null; // Ya no guardará el objeto sistema, sino los datos que lleguen del servidor
+        
+        // --- FUNCIONES DE PERSISTENCIA (AHORA LLAMAN AL SERVIDOR) ---
+
+        function guardarGruposPrioritarios(grupos) {
+          google.script.run
+            .withFailureHandler(showError)
+            .guardarGruposPrioritarios(grupos);
+        }
+
+        function cargarGruposPrioritarios(callback) {
+          google.script.run
+            .withSuccessHandler(callback)
+            .withFailureHandler(showError)
+            .cargarGruposPrioritarios();
+        }
+
+        // --- FUNCIONES PRINCIPALES (MODIFICADAS) ---
+
+        // Esta función ahora se llama cuando el servidor devuelve los IDs de los archivos
+        function onFilesSelected(fileIds) {
+            if (fileIds.length !== 5) {
+                mostrarNotificacion({ message: 'ERROR: Debe seleccionar exactamente 5 archivos CSV', type: 'error' });
+                return;
+            }
+            mostrarModalGrupoPrioritario();
+        }
+
+        // La función principal ahora solo orquesta las llamadas al servidor
+        function continuarAsignacion() {
+            const checkboxes = document.querySelectorAll('#grupos-prioritarios-container input[type="checkbox"]:checked');
+            const gruposPrioritarios = Array.from(checkboxes).map(cb => cb.value);
+
+            if (gruposPrioritarios.length === 0) {
+                mostrarNotificacion({ message: 'Seleccione al menos un grupo prioritario', type: 'advertencia' });
+                return;
+            }
+
+            guardarGruposPrioritarios(gruposPrioritarios);
+            ocultarModal();
+            mostrarIndicadorCarga(true);
+
+            // Llama a la función principal del servidor
+            google.script.run
+                .withSuccessHandler(onProcesamientoCompleto)
+                .withFailureHandler(showError)
+                .procesarYAsignar(archivosSeleccionadosIds, gruposPrioritarios);
+        }
+        
+        // Esta función recibe los resultados del servidor y actualiza la UI
+        function onProcesamientoCompleto(resultado) {
+            mostrarIndicadorCarga(false);
+            if (!resultado.exito) {
+                mostrarNotificacion({ message: resultado.mensaje, type: 'error' });
+                return;
+            }
+
+            mostrarNotificacion({ message: resultado.mensaje, type: 'exito' });
+            
+            // Guarda los datos recibidos del servidor
+            sistemaProcesado = resultado; 
+            
+            // Llama a las funciones de visualización con los datos del servidor
+            mostrarReporte(resultado.reporte);
+            mostrarSalonesEnInterfaz(resultado.datosSalones, resultado.gruposDivididos);
+            poblarTablaAsignacion(resultado.datosAsignaciones);
+        }
+        
+        // --- FUNCIONES DE VISUALIZACIÓN (RECIBEN DATOS COMO PARÁMETROS) ---
+        
+        function mostrarSalonesEnInterfaz(salones, gruposDivididos) {
+            // El contenido de esta función es casi idéntico, pero ahora usa el parámetro 'salones'
+            // en lugar de una variable global.
+            // ... (pega aquí el contenido original de la función) ...
+        }
+        
+        function mostrarReporte(reporte) {
+            // Usa el parámetro 'reporte' para generar la vista.
+            // ... (pega aquí el contenido original de la función) ...
+        }
+
+        function poblarTablaAsignacion(asignaciones) {
+            // Usa el parámetro 'asignaciones'.
+            // ... (pega aquí el contenido original de la función) ...
+        }
+        
+        // --- MANEJO DE EVENTOS ---
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // El botón ahora llama a una función del servidor para mostrar el picker
+            document.getElementById('btn-procesar').addEventListener('click', () => {
+                google.script.run
+                  .withFailureHandler(showError)
+                  .showFilePicker();
+            });
+
+            // Configurar el modal
+            document.getElementById('btn-confirmar-prioridad').addEventListener('click', continuarAsignacion);
+            // ... (otros event listeners) ...
+        });
+        
+        // --- FUNCIONES DE UTILIDAD (SIN CAMBIOS) ---
+
+        function mostrarNotificacion(data) { /* ... */ }
+        function mostrarIndicadorCarga(mostrar) { /* ... */ }
+        function showError(error) { /* ... */ }
+        function ocultarModal() { /* ... */ }
+        function loadSection(section) { /* ... */ }
+        
     </script>
 </body>
 </html>

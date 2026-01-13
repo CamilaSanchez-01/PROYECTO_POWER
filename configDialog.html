@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <!-- Incluir Font Awesome para los iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- Incluir SweetAlert2 para los diálogos de confirmación -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+      /* TODO: El CSS se generará dinámicamente, pero puedes incluir estilos base aquí si lo deseas. */
+      body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    </style>
+  </head>
+  <body>
+    <div id="config-panel-container">
+      <!-- El contenido del panel se generará aquí con JavaScript -->
+      <p>Cargando configuración...</p>
+    </div>
+
+    <script>
+      /**
+       * ============================================
+       * CÓDIGO CLIENTE (JAVASCRIPT)
+       * ============================================
+       */
+
+      // Función que se ejecuta al cargar la página
+      window.onload = function() {
+        // Llama a la función del servidor para obtener la configuración
+        google.script.run
+          .withSuccessHandler(generateConfigUI)
+          .withFailureHandler(showError)
+          .getConfigForClient();
+      };
+
+      /**
+       * Genera la interfaz de usuario con los datos de configuración recibidos del servidor.
+       * @param {Object} config - El objeto CONFIG del servidor.
+       */
+      function generateConfigUI(config) {
+        const validaciones = config.validaciones || {};
+        const asignacion = config.asignacion || {};
+        const edificios = config.edificios || {};
+        const prioridades = config.prioridades || {};
+        const laboratorio = config.laboratorio || {};
+
+        const container = document.getElementById('config-panel-container');
+        container.innerHTML = `
+          <div class="config-panel" id="panel-configuracion">
+            <div class="config-header">
+              <h2><i class="fas fa-cogs"></i> Configuración del Sistema</h2>
+              <button class="config-close" onclick="cerrarPanelConfiguracion()">&times;</button>
+            </div>
+            
+            <div class="config-content">
+              <!-- Sección de Validaciones -->
+              <div class="config-section">
+                <h3><i class="fas fa-check-circle"></i> Reglas de Validación</h3>
+                
+                <div class="config-item">
+                  <div class="config-item-header">
+                    <span class="config-label">Accesibilidad</span>
+                    <span class="config-status ${validaciones.accesibilidad?.habilitado ? 'enabled' : 'disabled'}">
+                      ${validaciones.accesibilidad?.habilitado ? 'Habilitado' : 'Deshabilitado'}
+                    </span>
+                  </div>
+                  <div class="config-details">
+                    <p><strong>Piso requerido:</strong> ${validaciones.accesibilidad?.pisoRequerido || 1}</p>
+                    <p class="config-message">${validaciones.accesibilidad?.mensaje || 'Sin mensaje configurado'}</p>
+                  </div>
+                </div>
+
+                <div class="config-item">
+                  <div class="config-item-header">
+                    <span class="config-label">Capacidad</span>
+                    <span class="config-status ${validaciones.capacidad?.habilitado ? 'enabled' : 'disabled'}">
+                      ${validaciones.capacidad?.habilitado ? 'Habilitado' : 'Deshabilitado'}
+                    </span>
+                  </div>
+                  <div class="config-details">
+                    <p><strong>Margen de exceso:</strong> ${validaciones.capacidad?.margenExceso || 0}</p>
+                    <p class="config-message">${validaciones.capacidad?.mensaje || 'Sin mensaje configurado'}</p>
+                  </div>
+                </div>
+                
+                <!-- ... (Replicar el resto de los items de validación, asignación, etc., como en el código original) ... -->
+                 <div class="config-section">
+                    <h3><i class="fas fa-random"></i> Configuración de Asignación</h3>
+                    <div class="config-grid">
+                      <div class="config-item-small"><span class="config-label">Max Reintentos</span><span class="config-value">${asignacion.maxReintentos || 3}</span></div>
+                      <div class="config-item-small"><span class="config-label">Permitir Reubicación</span><span class="config-value">${asignacion.permitirReubicacion ? 'Sí' : 'No'}</span></div>
+                    </div>
+                  </div>
+
+              </div>
+            </div>
+            
+            <div class="config-footer">
+              <button class="btn btn-secondary" onclick="resetearConfiguracionCompleta()">
+                <i class="fas fa-undo"></i> Restaurar Defaults
+              </button>
+              <button class="btn btn-primary" onclick="exportarConfiguracionActual()">
+                <i class="fas fa-download"></i> Exportar Config
+              </button>
+            </div>
+          </div>
+        `;
+        
+        // Agrega los estilos dinámicamente
+        agregarEstilosConfiguracion();
+      }
+
+      /**
+       * Cierra el panel de configuración.
+       */
+      function cerrarPanelConfiguracion() {
+        google.script.host.close();
+      }
+
+      /**
+       * Resetea la configuración a valores por defecto.
+       */
+      function resetearConfiguracionCompleta() {
+        Swal.fire({
+          title: '¿Restaurar configuración por defecto?',
+          text: 'Se perderán todos los cambios realizados',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#4CAF50',
+          cancelButtonColor: '#f44336',
+          confirmButtonText: 'Sí, restaurar',
+          cancelButtonText: 'Cancelar'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // Muestra indicador de carga
+            Swal.showLoading();
+            
+            // Llama al servidor para resetear
+            google.script.run
+              .withSuccessHandler(function(config) {
+                Swal.close();
+                generateConfigUI(config); // Regenera la UI con la config reseteada
+                Swal.fire('Restaurado', 'La configuración ha sido restaurada a los valores por defecto.', 'success');
+              })
+              .withFailureHandler(function(error) {
+                Swal.close();
+                Swal.fire('Error', `No se pudo restaurar la configuración: ${error.message}`, 'error');
+              })
+              .resetServerConfig('validaciones'); // O la sección que necesites resetear
+          }
+        });
+      }
+
+      /**
+       * Exporta la configuración actual a un archivo JSON.
+       */
+      function exportarConfiguracionActual() {
+        Swal.showLoading();
+        google.script.run
+          .withSuccessHandler(function(url) {
+            Swal.close();
+            window.open(url, '_blank'); // Abre la URL de descarga en una nueva pestaña
+          })
+          .withFailureHandler(function(error) {
+            Swal.close();
+            Swal.fire('Error', `No se pudo exportar la configuración: ${error.message}`, 'error');
+          })
+          .exportConfigAsFile();
+      }
+
+      /**
+       * Muestra un mensaje de error si la llamada al servidor falla.
+       * @param {string} error - El mensaje de error.
+       */
+      function showError(error) {
+        const container = document.getElementById('config-panel-container');
+        container.innerHTML = `<p style="color: red; font-family: sans-serif;">Error al cargar la configuración: ${error.message}</p>`;
+      }
+
+      /**
+       * Agrega los estilos CSS para el panel de configuración.
+       */
+      function agregarEstilosConfiguracion() {
+        if (document.getElementById('estilos-configuracion')) return;
+
+        const estilos = document.createElement('style');
+        estilos.id = 'estilos-configuracion';
+        estilos.textContent = `
+          /* Panel de configuración */
+          .config-panel { background: white; border-radius: 12px; width: 100%; height: 100%; overflow-y: auto; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); display: flex; flex-direction: column; }
+          .config-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid #e0e0e0; background: #f8f9fa; border-radius: 12px 12px 0 0; flex-shrink: 0; }
+          .config-header h2 { margin: 0; color: #333; font-size: 20px; }
+          .config-close { background: none; border: none; font-size: 28px; cursor: pointer; color: #666; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background 0.2s; }
+          .config-close:hover { background: #e0e0e0; color: #333; }
+          .config-content { padding: 20px; flex-grow: 1; }
+          .config-section { margin-bottom: 24px; padding: 16px; background: #f8f9fa; border-radius: 8px; }
+          .config-section h3 { margin: 0 0 16px 0; color: #333; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+          .config-item { background: white; padding: 12px; border-radius: 6px; margin-bottom: 12px; border: 1px solid #e0e0e0; }
+          .config-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+          .config-label { font-weight: 600; color: #333; }
+          .config-status { padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+          .config-status.enabled { background: #e8f5e9; color: #2e7d32; }
+          .config-status.disabled { background: #ffebee; color: #c62828; }
+          .config-details p { margin: 4px 0; font-size: 13px; color: #666; }
+          .config-message { font-style: italic; color: #888 !important; font-size: 12px !important; }
+          .config-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+          .config-item-small { background: white; padding: 12px; border-radius: 6px; border: 1px solid #e0e0e0; text-align: center; }
+          .config-item-small .config-label { display: block; font-size: 12px; color: #666; margin-bottom: 4px; }
+          .config-item-small .config-value { font-size: 16px; font-weight: 600; color: #333; }
+          .config-footer { display: flex; justify-content: flex-end; gap: 12px; padding: 16px 20px; border-top: 1px solid #e0e0e0; background: #f8f9fa; border-radius: 0 0 12px 12px; flex-shrink: 0; }
+          .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
+          .btn-primary { background: #2196f3; color: white; }
+          .btn-primary:hover { background: #1976d2; }
+          .btn-secondary { background: #f5f5f5; color: #333; }
+          .btn-secondary:hover { background: #e0e0e0; }
+        `;
+        document.head.appendChild(estilos);
+      }
+    </script>
+  </body>
+</html>

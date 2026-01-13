@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Asignación de Salones - UABC FCA</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <?!= include('Estilos') ?>
+    
+    <!-- El código del servidor se carga automáticamente en Apps Script -->
+</head>
+<body>
+    <!-- Contenedor principal de la aplicación -->
+    <div id="app">
+        <!-- Cargador inicial -->
+        <div id="app-loader" class="app-loader">
+            <div class="loader"></div>
+            <p class="loading-text">Inicializando sistema...</p>
+        </div>
+        
+        <!-- Contenido dinámico se cargará aquí -->
+        <div id="app-content" class="app-content" style="display: none;"></div>
+    </div>
+
+    <!-- Scripts de la aplicación -->
+    <script>
+        // Configuración global
+        const AppConfig = {
+            baseUrl: '<?!= getBaseUrl() ?>',
+            debug: true,
+            version: '3.0'
+        };
+        
+        // Variables globales
+        let currentUser = null;
+        let sessionToken = localStorage.getItem('sessionToken');
+        let currentPage = null;
+        
+        // Función para cargar una página
+        function loadPage(pageName) {
+            const appContent = document.getElementById('app-content');
+            const appLoader = document.getElementById('app-loader');
+
+            appContent.style.display = 'none';
+            appLoader.style.display = 'flex';
+            document.querySelector('.loading-text').textContent = `Cargando ${pageName}...`;
+
+            const startTime = Date.now();
+
+            if (pageName === 'login') {
+                loadLoginPage().then(() => {
+                    const loadTime = Date.now() - startTime;
+                    console.log(`Página cargada en ${loadTime}ms`);
+
+                    appLoader.style.display = 'none';
+                    appContent.style.display = 'block';
+                    currentPage = pageName;
+                }).catch(error => {
+                    console.error('Error loading page:', error);
+                    appLoader.style.display = 'none';
+                    appContent.style.display = 'block';
+                });
+            } else if (pageName === 'principal') {
+                loadPrincipalPage().then(() => {
+                    const loadTime = Date.now() - startTime;
+                    console.log(`Página cargada en ${loadTime}ms`);
+
+                    appLoader.style.display = 'none';
+                    appContent.style.display = 'block';
+                    currentPage = pageName;
+                }).catch(error => {
+                    console.error('Error loading page:', error);
+                    appLoader.style.display = 'none';
+                    appContent.style.display = 'block';
+                });
+            }
+        }
+        
+        // Función para cargar la página de login
+        function loadLoginPage() {
+            return new Promise((resolve, reject) => {
+                const appContent = document.getElementById('app-content');
+
+                // Timeout para evitar que se quede cargando
+                const timeout = setTimeout(() => {
+                    appContent.innerHTML = `
+                        <div class="error-container">
+                            <h2>Error de tiempo de espera</h2>
+                            <p>La carga de la página tomó demasiado tiempo.</p>
+                            <button onclick="loadLoginPage()">Reintentar</button>
+                        </div>
+                    `;
+                    reject(new Error('Timeout'));
+                }, 10000); // 10 segundos
+
+                // Verificar si estamos en entorno local
+                if (typeof google === 'undefined' || typeof google.script === 'undefined') {
+                    // Cargar contenido localmente
+                    fetch('Login.html')
+                        .then(response => response.text())
+                        .then(htmlContent => {
+                            clearTimeout(timeout);
+                            appContent.innerHTML = htmlContent;
+
+                            // Configurar eventos del login
+                            setTimeout(() => {
+                                setupLoginEvents();
+                                resolve();
+                            }, 100);
+                        })
+                        .catch(error => {
+                            clearTimeout(timeout);
+                            appContent.innerHTML = `
+                                <div class="error-container">
+                                    <h2>Error al cargar la página</h2>
+                                    <p>${error.message}</p>
+                                    <button onclick="loadLoginPage()">Reintentar</button>
+                                </div>
+                            `;
+                            reject(error);
+                        });
+                } else {
+                    // Obtener contenido del servidor
+                    google.script.run
+                        .withSuccessHandler(function(htmlContent) {
+                            clearTimeout(timeout);
+                            appContent.innerHTML = htmlContent;
+
+                            // Configurar eventos del login
+                            setTimeout(() => {
+                                setupLoginEvents();
+                                resolve();
+                            }, 100);
+                        })
+                        .withFailureHandler(function(error) {
+                            clearTimeout(timeout);
+                            appContent.innerHTML = `
+                                <div class="error-container">
+                                    <h2>Error al cargar la página</h2>
+                                    <p>${error.message}</p>
+                                    <button onclick="loadLoginPage()">Reintentar</button>
+                                </div>
+                            `;
+                            reject(error);
+                        })
+                        .include('Login');
+                }
+            });
+        }
+        
+        // Función para cargar la página principal con toda la funcionalidad integrada
+        function loadPrincipalPage() {
+            return new Promise((resolve, reject) => {
+                const appContent = document.getElementById('app-content');
+
+                // Timeout para evitar que se quede cargando
+                const timeout = setTimeout(() => {
+                    appContent.innerHTML = `
+                        <div class="error-container">
+                            <h2>Error de tiempo de espera</h2>
+                            <p>La carga de la página tomó demasiado tiempo.</p>
+                            <button onclick="loadPrincipalPage()">Reintentar</button>
+                        </div>
+                    `;
+                    reject(new Error('Timeout'));
+                }, 10000); // 10 segundos
+
+                // Verificar si estamos en entorno local
+                if (typeof google === 'undefined' || typeof google.script === 'undefined') {
+                    // Cargar contenido localmente
+                    fetch('Principal.html')
+                        .then(response => response.text())
+                        .then(htmlContent => {
+                            clearTimeout(timeout);
+                            appContent.innerHTML = htmlContent;
+
+                            // Configurar eventos de la página principal con versión mejorada
+                            setTimeout(() => {
+                                setupPrincipalEventsImproved();
+                                resolve();
+                            }, 300);
+                        })
+                        .catch(error => {
+                            clearTimeout(timeout);
+                            appContent.innerHTML = `
+                                <div class="error-container">
+                                    <h2>Error al cargar la página</h2>
+                                    <p>${error.message}</p>
+                                    <button onclick="loadPrincipalPage()">Reintentar</button>
+                                </div>
+                            `;
+                            reject(error);
+                        });
+                } else {
+                    // Obtener contenido del servidor
+                    google.script.run
+                        .withSuccessHandler(function(htmlContent) {
+                            clearTimeout(timeout);
+                            appContent.innerHTML = htmlContent;
+
+                            // Configurar eventos de la página principal con versión mejorada
+                            setTimeout(() => {
+                                setupPrincipalEventsImproved();
+                                resolve();
+                            }, 300);
+                        })
+                        .withFailureHandler(function(error) {
+                            clearTimeout(timeout);
+                            appContent.innerHTML = `
+                                <div class="error-container">
+                                    <h2>Error al cargar la página</h2>
+                                    <p>${error.message}</p>
+                                    <button onclick="loadPrincipalPage()">Reintentar</button>
+                                </div>
+                            `;
+                            reject(error);
+                        })
+                        .include('Principal');
+                }
+            });
+        }
+        
+        // Configurar eventos del login
+        function setupLoginEvents() {
+            const loginForm = document.getElementById('loginForm');
+            
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const userId = document.getElementById('userId').value.trim();
+                    const password = document.getElementById('password').value.trim();
+                    
+                    if (!userId || !password) {
+                        showNotification('Por favor completa todos los campos', 'warning');
+                        return;
+                    }
+                    
+                    const submitBtn = loginForm.querySelector('button[type="submit"]');
+                    const originalText = submitBtn.textContent;
+                    submitBtn.textContent = 'Autenticando...';
+                    submitBtn.disabled = true;
+                    
+                    // Verificar si estamos en entorno local
+                    if (typeof google === 'undefined' || typeof google.script === 'undefined') {
+                        // Simular autenticación local
+                        setTimeout(() => {
+                            submitBtn.textContent = originalText;
+                            submitBtn.disabled = false;
+
+                            // Simular login exitoso con datos de prueba
+                            if (userId && password) {
+                                sessionToken = 'local-token-' + Date.now();
+                                currentUser = {
+                                    nombre: 'Usuario Local',
+                                    rol: 'admin',
+                                    esAdmin: true
+                                };
+
+                                localStorage.setItem('sessionToken', sessionToken);
+                                localStorage.setItem('userName', currentUser.nombre);
+                                localStorage.setItem('userRole', currentUser.rol);
+                                localStorage.setItem('userIsAdmin', currentUser.esAdmin);
+
+                                showNotification(`¡Bienvenido, ${currentUser.nombre}!`, 'success');
+
+                                // Redirigir a la página principal
+                                if (typeof google === 'undefined' || typeof google.script === 'undefined') {
+                                    window.location.href = 'Principal.html';
+                                } else {
+                                    loadPage('principal');
+                                }
+                            } else {
+                                showNotification('Credenciales inválidas', 'error');
+                            }
+                        }, 1000); // Simular delay de red
+                    } else {
+                        google.script.run
+                            .withSuccessHandler(function(result) {
+                                submitBtn.textContent = originalText;
+                                submitBtn.disabled = false;
+
+                                if (result.success) {
+                                    // Guardar token y usuario
+                                    sessionToken = result.token;
+                                    currentUser = result.user;
+
+                                    localStorage.setItem('sessionToken', sessionToken);
+                                    localStorage.setItem('userName', result.user.nombre);
+                                    localStorage.setItem('userRole', result.user.rol);
+                                    localStorage.setItem('userIsAdmin', result.user.esAdmin);
+
+                                    showNotification(`¡Bienvenido, ${result.user.nombre}!`, 'success');
+
+                                    // Redirigir a la página principal
+                                    loadPage('principal');
+                                } else {
+                                    showNotification(result.message, 'error');
+                                }
+                            })
+                            .withFailureHandler(function(error) {
+                                submitBtn.textContent = originalText;
+                                submitBtn.disabled = false;
+                                showNotification('Error de conexión: ' + error.message, 'error');
+                            })
+                            .autenticarUsuario(userId, password);
+                    }
+                });
+            }
+        }
+        
+        // Función mejorada para configurar eventos de la página principal
+        function setupPrincipalEventsImproved() {
+            // Esperar un poco más para asegurar que todos los elementos estén listos
+            setTimeout(() => {
+                setupLogoutImproved();
+                setupSidebarImproved();
+                setupNavigationImproved();
+                initializeUserInfoImproved();
+                
+                // Cargar contenido inicial solo si no está ya cargado
+                const contentSection = document.getElementById('content-section');
+                if (contentSection && !contentSection.innerHTML.trim()) {
+                    loadHomeContent();
+                }
+            }, 300);
+        }
+
+        // Configurar logout mejorado
+        function setupLogoutImproved() {
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                // Remover listeners anteriores para evitar duplicados
+                const newLogoutBtn = logoutBtn.cloneNode(true);
+                logoutBtn.parentNode.replaceChild(newLogoutBtn, logoutBtn);
+                
+                newLogoutBtn.addEventListener('click', function() {
+                    Swal.fire({
+                        title: '¿Cerrar sesión?',
+                        text: '¿Estás seguro de que quieres salir del sistema?',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#4CAF50',
+                        cancelButtonColor: '#f44336',
+                        confirmButtonText: 'Sí, cerrar sesión',
+                        cancelButtonText: 'Cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            if (sessionToken) {
+                                if (typeof google === 'undefined' || typeof google.script === 'undefined') {
+                                    // Logout local
+                                    localStorage.removeItem('sessionToken');
+                                    localStorage.removeItem('userName');
+                                    localStorage.removeItem('userRole');
+                                    localStorage.removeItem('userIsAdmin');
+                                    sessionToken = null;
+                                    currentUser = null;
+
+                                    // Volver al login
+                                    loadPage('login');
+                                    showNotification('Sesión cerrada exitosamente', 'info');
+                                } else {
+                                    google.script.run
+                                        .withSuccessHandler(function(result) {
+                                            // Limpiar datos
+                                            localStorage.removeItem('sessionToken');
+                                            localStorage.removeItem('userName');
+                                            localStorage.removeItem('userRole');
+                                            localStorage.removeItem('userIsAdmin');
+                                            sessionToken = null;
+                                            currentUser = null;
+
+                                            // Volver al login
+                                            loadPage('login');
+                                            showNotification('Sesión cerrada exitosamente', 'info');
+                                        })
+                                        .withFailureHandler(function(error) {
+                                            console.error('Error cerrando sesión:', error);
+                                            // Limpiar datos de todos modos
+                                            localStorage.removeItem('sessionToken');
+                                            localStorage.removeItem('userName');
+                                            localStorage.removeItem('userRole');
+                                            localStorage.removeItem('userIsAdmin');
+                                            sessionToken = null;
+                                            currentUser = null;
+                                            loadPage('login');
+                                        })
+                                        .cerrarSesion(sessionToken);
+                                }
+                            } else {
+                                localStorage.removeItem('sessionToken');
+                                localStorage.removeItem('userName');
+                                localStorage.removeItem('userRole');
+                                localStorage.removeItem('userIsAdmin');
+                                sessionToken = null;
+                                currentUser = null;
+                                loadPage('login');
+                            }
+                        }
+                    });
+                });
+            }
+        }
+
+        // Configurar sidebar mejorado
+        function setupSidebarImproved() {
+            const menuToggle = document.getElementById('menuToggle');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            
+            if (menuToggle && sidebar && sidebarOverlay) {
+                // Remover listeners anteriores
+                const newMenuToggle = menuToggle.cloneNode(true);
+                menuToggle.parentNode.replaceChild(newMenuToggle, menuToggle);
+                
+                newMenuToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('active');
+                    sidebarOverlay.classList.toggle('active');
+                    
+                    // Cambiar ícono
+                    const icon = newMenuToggle.querySelector('i');
+                    if (sidebar.classList.contains('active')) {
+                        icon.classList.remove('fa-bars');
+                        icon.classList.add('fa-times');
+                    } else {
+                        icon.classList.remove('fa-times');
+                        icon.classList.add('fa-bars');
+                    }
+                });
+                
+                // Cerrar sidebar al hacer clic en overlay
+                sidebarOverlay.addEventListener('click', function() {
+                    sidebar.classList.remove('active');
+                    sidebarOverlay.classList.remove('active');
+                    
+                    const icon = newMenuToggle.querySelector('i');
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
+                });
+            }
+        }
+
+        // Configurar navegación mejorada
+        function setupNavigationImproved() {
+            const sidebarLinks = document.querySelectorAll('.sidebar-link');
+            sidebarLinks.forEach(link => {
+                // Remover listeners anteriores
+                const newLink = link.cloneNode(true);
+                link.parentNode.replaceChild(newLink, link);
+                
+                newLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Quitar clase active de todos los enlaces
+                    document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+                    
+                    // Agregar clase active al enlace actual
+                    this.classList.add('active');
+                    
+                    // Obtener la página
+                    const page = this.getAttribute('data-page');
+
+                    // Cargar contenido según la página
+                    if (page === 'inicio') {
+                        loadHomeContent();
+                    } else if (page === 'edificios') {
+                        loadBuildingsContent();
+                    } else if (page === 'usuarios') {
+                        loadUsersContent();
+                    } else if (page === 'configuracion') {
+                        loadSettingsContent();
+                    }
+                    
+                    // Cerrar sidebar en móviles
+                    if (window.innerWidth <= 768) {
+                        const sidebar = document.getElementById('sidebar');
+                        const sidebarOverlay = document.getElementById('sidebarOverlay');
+                        const menuToggle = document.getElementById('menuToggle');
+                        
+                        if (sidebar && sidebarOverlay && menuToggle) {
+                            sidebar.classList.remove('active');
+                            sidebarOverlay.classList.remove('active');
+                            
+                            const icon = menuToggle.querySelector('i');
+                            icon.classList.remove('fa-times');
+                            icon.classList.add('fa-bars');
+                        }
+                    }
+                });
+            });
+        }
+
+        // Inicializar información del usuario mejorada
+        function initializeUserInfoImproved() {
+            const userName = localStorage.getItem('userName');
+            const userAvatar = document.getElementById('userAvatar');
+            const userNameElement = document.getElementById('userName');
+            
+            if (userName && userAvatar) {
+                userAvatar.textContent = userName.charAt(0).toUpperCase();
+            }
+            
+            if (userName && userNameElement) {
+                userNameElement.textContent = userName;
+            }
+        }
+
+        // Función para mostrar notificaciones
+        function showNotification(message, type = 'info') {
+            // Eliminar notificaciones existentes
+            document.querySelectorAll('.notification').forEach(n => n.remove());
+            
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.classList.add('show'), 10);
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+
+
+
+
+        
+        // Inicializar la aplicación
+        function initApp() {
+            // Verificar si estamos en entorno local (sin google.script)
+            if (typeof google === 'undefined' || typeof google.script === 'undefined') {
+                // Entorno local - cargar login directamente
+                console.log('Entorno local detectado - cargando login');
+                loadPage('login');
+                return;
+            }
+
+            // Verificar si hay sesión activa
+            if (sessionToken) {
+                google.script.run
+                    .withSuccessHandler(function(result) {
+                        if (result.valid) {
+                            // Sesión válida, cargar página principal
+                            currentUser = result.user;
+
+                            // Restaurar información de rol
+                            if (result.user.rol) {
+                                localStorage.setItem('userRole', result.user.rol);
+                                localStorage.setItem('userIsAdmin', result.user.esAdmin || result.user.rol.toLowerCase() === 'admin');
+                            }
+
+                            loadPage('principal');
+                        } else {
+                            // Sesión inválida, cargar login
+                            localStorage.removeItem('sessionToken');
+                            localStorage.removeItem('userRole');
+                            localStorage.removeItem('userIsAdmin');
+                            loadPage('login');
+                        }
+                    })
+                    .withFailureHandler(function(error) {
+                        console.error('Error validando sesión:', error);
+                        localStorage.removeItem('sessionToken');
+                        localStorage.removeItem('userRole');
+                        localStorage.removeItem('userIsAdmin');
+                        loadPage('login');
+                    })
+                    .validarSesion(sessionToken);
+            } else {
+                // No hay sesión, cargar login
+                loadPage('login');
+            }
+        }
+
+        // Funciones de carga de contenido
+        function loadHomeContent() {
+            const contentSection = document.getElementById('content-section');
+            if (contentSection) {
+                contentSection.innerHTML = `
+                    <div class="content-header">
+                        <h2><i class="fas fa-home"></i> Panel Principal</h2>
+                        <p>Bienvenido al Sistema de Asignación de Salones</p>
+                    </div>
+                    <div class="dashboard-grid">
+                        <div class="dashboard-card">
+                            <div class="card-icon">
+                                <i class="fas fa-building"></i>
+                            </div>
+                            <div class="card-content">
+                                <h3>Edificios</h3>
+                                <p>Gestionar edificios y salones</p>
+                                <button onclick="loadBuildingsContent()" class="btn-primary">Ver Edificios</button>
+                            </div>
+                        </div>
+                        <div class="dashboard-card">
+                            <div class="card-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="card-content">
+                                <h3>Usuarios</h3>
+                                <p>Administrar usuarios del sistema</p>
+                                <button onclick="loadUsersContent()" class="btn-primary">Ver Usuarios</button>
+                            </div>
+                        </div>
+                        <div class="dashboard-card">
+                            <div class="card-icon">
+                                <i class="fas fa-cog"></i>
+                            </div>
+                            <div class="card-content">
+                                <h3>Configuración</h3>
+                                <p>Ajustes del sistema</p>
+                                <button onclick="loadSettingsContent()" class="btn-primary">Ver Configuración</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function loadBuildingsContent() {
+            const contentSection = document.getElementById('content-section');
+            if (contentSection) {
+                contentSection.innerHTML = `
+                    <div class="content-header">
+                        <h2><i class="fas fa-building"></i> Gestión de Edificios</h2>
+                        <p>Administra los edificios y salones disponibles</p>
+                    </div>
+                    <div class="content-body">
+                        <div class="action-bar">
+                            <button class="btn-primary"><i class="fas fa-plus"></i> Nuevo Edificio</button>
+                            <button class="btn-secondary"><i class="fas fa-upload"></i> Importar CSV</button>
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Edificio</th>
+                                        <th>Piso</th>
+                                        <th>Salones</th>
+                                        <th>Capacidad Total</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Edificio A</td>
+                                        <td>1-5</td>
+                                        <td>25</td>
+                                        <td>500</td>
+                                        <td>
+                                            <button class="btn-small btn-primary">Editar</button>
+                                            <button class="btn-small btn-danger">Eliminar</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function loadUsersContent() {
+            const contentSection = document.getElementById('content-section');
+            if (contentSection) {
+                contentSection.innerHTML = `
+                    <div class="content-header">
+                        <h2><i class="fas fa-users"></i> Gestión de Usuarios</h2>
+                        <p>Administra los usuarios del sistema</p>
+                    </div>
+                    <div class="content-body">
+                        <div class="action-bar">
+                            <button class="btn-primary"><i class="fas fa-user-plus"></i> Nuevo Usuario</button>
+                            <button class="btn-secondary"><i class="fas fa-file-export"></i> Exportar Lista</button>
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Email</th>
+                                        <th>Rol</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Administrador</td>
+                                        <td>admin@uabc.edu.mx</td>
+                                        <td>Administrador</td>
+                                        <td><span class="status-active">Activo</span></td>
+                                        <td>
+                                            <button class="btn-small btn-primary">Editar</button>
+                                            <button class="btn-small btn-danger">Desactivar</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function loadSettingsContent() {
+            const contentSection = document.getElementById('content-section');
+            if (contentSection) {
+                contentSection.innerHTML = `
+                    <div class="content-header">
+                        <h2><i class="fas fa-cog"></i> Configuración del Sistema</h2>
+                        <p>Ajustes y preferencias del sistema</p>
+                    </div>
+                    <div class="content-body">
+                        <div class="settings-grid">
+                            <div class="setting-card">
+                                <h3><i class="fas fa-clock"></i> Horarios</h3>
+                                <div class="setting-item">
+                                    <label>Hora de inicio:</label>
+                                    <input type="time" value="08:00" class="form-input">
+                                </div>
+                                <div class="setting-item">
+                                    <label>Hora de fin:</label>
+                                    <input type="time" value="20:00" class="form-input">
+                                </div>
+                            </div>
+                            <div class="setting-card">
+                                <h3><i class="fas fa-building"></i> Edificios</h3>
+                                <div class="setting-item">
+                                    <label>Edificio preferido:</label>
+                                    <select class="form-select">
+                                        <option value="A">Edificio A</option>
+                                        <option value="B">Edificio B</option>
+                                        <option value="C">Edificio C</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="setting-card">
+                                <h3><i class="fas fa-users"></i> Accesibilidad</h3>
+                                <div class="setting-item">
+                                    <label>
+                                        <input type="checkbox" checked> Habilitar validación de accesibilidad
+                                    </label>
+                                </div>
+                                <div class="setting-item">
+                                    <label>Piso accesible:</label>
+                                    <input type="number" value="1" min="1" max="5" class="form-input">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="action-bar">
+                            <button class="btn btn-primary" onclick="mostrarPanelConfiguracion()">
+                                <i class="fas fa-cogs"></i> Ver Configuración Completa
+                            </button>
+                            <button class="btn btn-secondary" onclick="resetearConfiguracionCompleta()">
+                                <i class="fas fa-undo"></i> Restaurar Defaults
+                            </button>
+                            <button class="btn btn-secondary" onclick="exportarConfiguracionActual()">
+                                <i class="fas fa-download"></i> Exportar Config
+                            </button>
+                        </div>
+                        
+                        <!-- Vista previa de configuración actual -->
+                        <div id="config-preview" class="config-preview">
+                            <h4><i class="fas fa-info-circle"></i> Configuración Actual</h4>
+                            <div class="config-summary">
+                                <p><strong>Validaciones:</strong> ${getConfig('validaciones.accesibilidad.habilitado') ? 'Habilitadas' : 'Deshabilitadas'}</p>
+                                <p><strong>Edificios:</strong> ${Object.keys(getConfig('edificios', {})).join(', ')}</p>
+                                <p><strong>Total salones:</strong> ${Object.values(getConfig('edificios', {})).reduce((total, ed) => total + ed.salonesPorPiso.reduce((a, b) => a + b, 0), 0)}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Iniciar la aplicación cuando se carga la página
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
